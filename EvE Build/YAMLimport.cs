@@ -263,7 +263,6 @@ namespace EvE_Build
 
                 //time to get the name value of the item
                 var item = (YamlMappingNode)map.Children[entry.Key];
-                //YamlNode nameNode = new YamlScalarNode("name");
                 var nameNode = (YamlMappingNode)item.Children[(new YamlScalarNode("name"))];
                 string itemName = "";
 
@@ -277,7 +276,7 @@ namespace EvE_Build
                 }
 
                 //set the item name
-                name[r] = itemName;
+                name[itemPosition] = itemName;
                 ++r;
 
                 //reset
@@ -293,7 +292,7 @@ namespace EvE_Build
 
             foreach (var item in items)
             {
-                int[,] materials = item.getProdMats();
+                Int64[,] materials = item.getProdMats();
                 for (int i = 0; i < (materials.Length / 2) - 1; ++i)
                 {
                     //find valid material
@@ -323,7 +322,7 @@ namespace EvE_Build
 
                         if (found == false)
                         {
-                            typeId[r] = materials[i, 1];
+                            typeId[r] = Convert.ToInt32(materials[i, 1]);
                             ++r;
                         }
                     }

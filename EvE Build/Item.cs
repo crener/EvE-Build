@@ -21,8 +21,8 @@ namespace EvE_Build
         //int invID = 0,
         //    invQty = 1,
         //    invTime = 0;
-        int[,] prodMats,
-            //invMats,
+        Int64[,] prodMats;
+        int[,] //invMats,
             copyMats,
             prodskills,
             //MEskills,
@@ -65,7 +65,7 @@ namespace EvE_Build
         public void setTEtime(int time) { TEtime = time; }
         public void setProdMats(int[,] mats)
         {
-            prodMats = new int[mats.Length / 2, 2];
+            prodMats = new Int64[mats.Length / 2, 2];
 
             //move values from one array to another
             for (int i = 0; i < (mats.Length / 2); ++i)
@@ -124,7 +124,7 @@ namespace EvE_Build
         public int[,] getCopySkill() { return copyskills; }
         public int[,] getCopyMats() { return copyMats; }
         public int[,] getProdSkill() { return prodskills; }
-        public int[,] getProdMats() { return prodMats; }
+        public Int64[,] getProdMats() { return prodMats; }
         public Int64 getBuyPrice(int station) {
 
             if (station > buyCost.Length - 1)

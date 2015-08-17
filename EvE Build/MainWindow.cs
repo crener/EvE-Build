@@ -19,7 +19,7 @@ namespace EvE_Build
             littleMinion;
         int[] prodMatIds,
             skills;
-        int[,] prodMatPrices;
+        Int64[,] prodMatPrices;
         string[] prodMatNames,
             skillNames;
         List<string> listItems;
@@ -83,13 +83,14 @@ namespace EvE_Build
                 }
             }
             listItems = data;
-            itemSelectAll.DataSource = data;
-
+            
             prodMatIds = importer.YdnMatType(items);
             prodMatNames = importer.YdnNameFromID("StaticData/typeIDs.yaml", prodMatIds, "en");
-            prodMatPrices = new int[prodMatIds.Length, 5];
+            prodMatPrices = new Int64[prodMatIds.Length, 5];
             skills = importer.YdnGetAllSkills(items);
             skillNames = importer.YdnNameFromID("StaticData/typeIDs.yaml", skills, "en");
+
+            itemSelectAll.DataSource = data;
         }
 
         void Settings()
@@ -170,7 +171,7 @@ namespace EvE_Build
 
         private void itemSelectAll_SelectedIndexChanged(object sender, EventArgs e)
         {
-            Item current;
+            Item current = new Item(0,0);
 
             //figure out what the type ID of the item is
             bool found = false;
@@ -184,7 +185,111 @@ namespace EvE_Build
             }
 
             //update data
+            DataTable table = new DataTable();
+            table.Columns.Add("Name", typeof(string));
+            table.Columns.Add("Quantity", typeof(int));
+            table.Columns.Add(stationNames[0], typeof(Int64));
+            table.Columns.Add(stationNames[1], typeof(Int64));
+            table.Columns.Add(stationNames[2], typeof(Int64));
+            table.Columns.Add(stationNames[3], typeof(Int64));
+            table.Columns.Add(stationNames[4], typeof(Int64));
+
+            bool second = false;
+            int quantity = 0;
+            foreach (int value in current.getProdMats())
+            {
+                if (value == 0)
+                {
+                    continue;
+                }
+
+                if (second == false)
+                {
+                    quantity = value;
+                    second = true;
+                }
+                else if (second == true)
+                {
+                    //populate the next row
+                    string name = "";
+                    bool found2 = false;
+                    for (int i = 0; i < prodMatNames.Length - 1 && found2 == false; ++i)
+                    {
+                        if (prodMatIds[i] == value)
+                        {
+                            name = prodMatNames[i];
+                            table.Rows.Add(name, quantity, cost(i, 0, quantity),
+                                cost(i, 1, quantity), cost(i, 2, quantity),
+                                cost(i, 3, quantity), cost(i, 4, quantity));
+                            found2 = true;
+                            break;
+                        }
+                    }
+                    if (found2 == false)
+                    {
+                        for (int i = 0; i < items.Length - 1 && found2 == false; ++i)
+                        {
+
+                        }
+                    }
+
+
+                    second = false;
+                }
+            }
+
+            //put the data into the table so the user can see it
+            ManufacturingTable.DataSource = new DataTable();
+            ManufacturingTable.DataSource = table;
         }
+
+        //private DataTable fillTable(Item search)
+        //{
+        //    DataTable output = new DataTable();
+        //    bool second = false;
+        //    int quantity = 0;
+        //    foreach (int value in search.getProdMats())
+        //    {
+        //        if (value == null || value == 0)
+        //        {
+        //            continue;
+        //        }
+
+        //        if (second == false)
+        //        {
+        //            quantity = value;
+        //            second = true;
+        //        }
+        //        else if (second == true)
+        //        {
+        //            //populate the next row
+        //            string name = "";
+        //            bool found2 = false;
+        //            for (int i = 0; i < prodMatNames.Length - 1 && found2 == false; ++i)
+        //            {
+        //                if (prodMatIds[i] == value)
+        //                {
+        //                    name = prodMatNames[i];
+        //                    table.Rows.Add(name, quantity, cost(i, 0, quantity),
+        //                        cost(i, 1, quantity), cost(i, 2, quantity),
+        //                        cost(i, 3, quantity), cost(i, 4, quantity));
+        //                    found2 = true;
+        //                    break;
+        //                }
+        //            }
+        //            if (found2 == false)
+        //            {
+        //                for (int i = 0; i < items.Length - 1 && found2 == false; ++i)
+        //                {
+
+        //                }
+        //            }
+
+
+        //            second = false;
+        //        }
+        //    }
+        //}
 
         private void searchBox_TextChanged(object sender, EventArgs e)
         {
@@ -252,6 +357,11 @@ namespace EvE_Build
         {
             Options optionsForm = new Options(stationNames, stationIds, updateOnStartup, updateInterval);
             optionsForm.ShowDialog();
+        }
+
+        private Int64 cost(int typeID, int stationNo, Int64 qty)
+        {
+            return prodMatPrices[typeID, stationNo] * qty;
         }
     }
 }

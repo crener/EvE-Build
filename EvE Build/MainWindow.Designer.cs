@@ -33,7 +33,7 @@
             this.TabManufacture = new System.Windows.Forms.TabPage();
             this.splitContainer2 = new System.Windows.Forms.SplitContainer();
             this.MESlider = new System.Windows.Forms.TrackBar();
-            this.ManufacturingTable = new System.Windows.Forms.TableLayoutPanel();
+            this.ManufacturingTable = new System.Windows.Forms.DataGridView();
             this.itemSelectAll = new System.Windows.Forms.ListBox();
             this.ItemTabs = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
@@ -50,6 +50,7 @@
             this.splitContainer2.Panel2.SuspendLayout();
             this.splitContainer2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.MESlider)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.ManufacturingTable)).BeginInit();
             this.ItemTabs.SuspendLayout();
             this.tabPage1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer3)).BeginInit();
@@ -99,29 +100,27 @@
             // 
             this.splitContainer2.Panel2.Controls.Add(this.ManufacturingTable);
             this.splitContainer2.Size = new System.Drawing.Size(725, 508);
-            this.splitContainer2.SplitterDistance = 342;
+            this.splitContainer2.SplitterDistance = 331;
             this.splitContainer2.TabIndex = 2;
             // 
             // MESlider
             // 
-            this.MESlider.Location = new System.Drawing.Point(3, 294);
+            this.MESlider.Location = new System.Drawing.Point(56, 243);
             this.MESlider.Name = "MESlider";
             this.MESlider.Size = new System.Drawing.Size(94, 45);
             this.MESlider.TabIndex = 0;
             // 
             // ManufacturingTable
             // 
-            this.ManufacturingTable.AutoSize = true;
-            this.ManufacturingTable.ColumnCount = 1;
-            this.ManufacturingTable.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 40.625F));
+            this.ManufacturingTable.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.ManufacturingTable.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.ManufacturingTable.Enabled = false;
             this.ManufacturingTable.Location = new System.Drawing.Point(0, 0);
             this.ManufacturingTable.Name = "ManufacturingTable";
-            this.ManufacturingTable.RowCount = 1;
-            this.ManufacturingTable.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
-            this.ManufacturingTable.Size = new System.Drawing.Size(725, 162);
-            this.ManufacturingTable.TabIndex = 1;
+            this.ManufacturingTable.ReadOnly = true;
+            this.ManufacturingTable.RowHeadersWidthSizeMode = System.Windows.Forms.DataGridViewRowHeadersWidthSizeMode.AutoSizeToAllHeaders;
+            this.ManufacturingTable.RowTemplate.Height = 18;
+            this.ManufacturingTable.Size = new System.Drawing.Size(725, 173);
+            this.ManufacturingTable.TabIndex = 0;
             // 
             // itemSelectAll
             // 
@@ -244,10 +243,10 @@
             this.splitContainer2.Panel1.ResumeLayout(false);
             this.splitContainer2.Panel1.PerformLayout();
             this.splitContainer2.Panel2.ResumeLayout(false);
-            this.splitContainer2.Panel2.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer2)).EndInit();
             this.splitContainer2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.MESlider)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.ManufacturingTable)).EndInit();
             this.ItemTabs.ResumeLayout(false);
             this.tabPage1.ResumeLayout(false);
             this.splitContainer3.Panel1.ResumeLayout(false);
@@ -278,10 +277,10 @@
         private System.Windows.Forms.SplitContainer splitContainer3;
         private System.Windows.Forms.TrackBar MESlider;
         private System.Windows.Forms.SplitContainer splitContainer2;
-        private System.Windows.Forms.TableLayoutPanel ManufacturingTable;
         private System.Windows.Forms.ListBox itemSelectAll;
         private System.Windows.Forms.MenuStrip menuStrip1;
         private System.Windows.Forms.ToolStripMenuItem optionsToolStripMenuItem;
+        private System.Windows.Forms.DataGridView ManufacturingTable;
     }
 }
 
