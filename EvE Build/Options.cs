@@ -24,7 +24,7 @@ namespace EvE_Build
 
             stationNames = stationsName;
             stationIds = stationsIds;
-            updateOnStartup = updateOnStartup;
+            this.updateOnStartup = updateOnStartup;
             updateInterval = update;
 
             setupGUI();

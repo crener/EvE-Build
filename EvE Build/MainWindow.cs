@@ -19,15 +19,17 @@ namespace EvE_Build
             littleMinion;
         int[] prodMatIds,
             skills;
-        Int64[,] prodMatPrices;
+        Int64[, ,] prodMatPrices;
         string[] prodMatNames,
             skillNames;
         List<string> listItems;
 
+        WebInterface eveCentral = new WebInterface();
+
         //application settings
-        bool updateOnStartup;
-        string[] stationNames;
-        int[] stationIds;
+        bool updateOnStartup = false;
+        string[] stationNames = new string[5];
+        int[] stationIds = new int[5];
         int updateInterval = 1;
 
         public MainWindow()
@@ -83,10 +85,10 @@ namespace EvE_Build
                 }
             }
             listItems = data;
-            
+
             prodMatIds = importer.YdnMatType(items);
             prodMatNames = importer.YdnNameFromID("StaticData/typeIDs.yaml", prodMatIds, "en");
-            prodMatPrices = new Int64[prodMatIds.Length, 5];
+            prodMatPrices = new Int64[5, prodMatIds.Length, 2];
             skills = importer.YdnGetAllSkills(items);
             skillNames = importer.YdnNameFromID("StaticData/typeIDs.yaml", skills, "en");
 
@@ -132,7 +134,7 @@ namespace EvE_Build
 
                     if (line.StartsWith("UpdateStart"))
                     {
-                        string temp = line.Remove( line.IndexOf(" ") + 1);
+                        string temp = line.Remove(line.IndexOf(" ") + 1);
                         if (temp == "False")
                         {
                             updateOnStartup = false;
@@ -169,9 +171,72 @@ namespace EvE_Build
 
         }
 
+        void EveThread()
+        {
+            try
+            {
+                while (true)
+                {
+                    //update station data
+                    for (int l = 0; l < 5; ++l)
+                    {
+                        int upto = 0;
+                        int[] search = new int[50];
+                        string data = "";
+                        while (upto != prodMatIds.Length - 1)
+                        {
+                            for (int i = 0; i <= 49 && upto != prodMatIds.Length - 1; ++i)
+                            {
+                                search[i] = prodMatIds[upto];
+                                ++upto;
+                            }
+
+                            if (data != "")
+                            {
+                                data = data.Remove(data.Length - 29);
+                                string temp = eveCentral.getWebData(stationIds[l], search);
+                                temp = temp.Remove(0, 106);
+                                data = string.Concat(data, temp);
+                            }
+                            else
+                            {
+                                data = eveCentral.getWebData(stationIds[l], search);
+                            }
+
+
+                            search = new int[50];
+                        }
+                        Int64[,] stationData = eveCentral.extractPrice(data, prodMatIds);
+
+                        //place data into the correct array
+                        for (int i = 0; i < upto; ++i)
+                        {
+                            //item layer
+                            for (int m = 0; m < 2; ++m)
+                            {
+                                prodMatPrices[l, i, m] = stationData[i, m];
+                            }
+                        }
+                    }
+
+                    Thread.Sleep(updateInterval * 60000);
+                }
+            }
+            catch (ThreadAbortException)
+            {
+                eveCentralBot.Abort();
+                // Thead was aborted
+            }
+        }
+
         private void itemSelectAll_SelectedIndexChanged(object sender, EventArgs e)
         {
-            Item current = new Item(0,0);
+            
+        }
+
+        private void ItemProporties()
+        {
+            Item current = new Item(0, 0);
 
             //figure out what the type ID of the item is
             bool found = false;
@@ -188,11 +253,11 @@ namespace EvE_Build
             DataTable table = new DataTable();
             table.Columns.Add("Name", typeof(string));
             table.Columns.Add("Quantity", typeof(int));
-            table.Columns.Add(stationNames[0], typeof(Int64));
-            table.Columns.Add(stationNames[1], typeof(Int64));
-            table.Columns.Add(stationNames[2], typeof(Int64));
-            table.Columns.Add(stationNames[3], typeof(Int64));
-            table.Columns.Add(stationNames[4], typeof(Int64));
+            table.Columns.Add(stationNames[0], typeof(string));
+            table.Columns.Add(stationNames[1], typeof(string));
+            table.Columns.Add(stationNames[2], typeof(string));
+            table.Columns.Add(stationNames[3], typeof(string));
+            table.Columns.Add(stationNames[4], typeof(string));
 
             bool second = false;
             int quantity = 0;
@@ -243,54 +308,6 @@ namespace EvE_Build
             ManufacturingTable.DataSource = table;
         }
 
-        //private DataTable fillTable(Item search)
-        //{
-        //    DataTable output = new DataTable();
-        //    bool second = false;
-        //    int quantity = 0;
-        //    foreach (int value in search.getProdMats())
-        //    {
-        //        if (value == null || value == 0)
-        //        {
-        //            continue;
-        //        }
-
-        //        if (second == false)
-        //        {
-        //            quantity = value;
-        //            second = true;
-        //        }
-        //        else if (second == true)
-        //        {
-        //            //populate the next row
-        //            string name = "";
-        //            bool found2 = false;
-        //            for (int i = 0; i < prodMatNames.Length - 1 && found2 == false; ++i)
-        //            {
-        //                if (prodMatIds[i] == value)
-        //                {
-        //                    name = prodMatNames[i];
-        //                    table.Rows.Add(name, quantity, cost(i, 0, quantity),
-        //                        cost(i, 1, quantity), cost(i, 2, quantity),
-        //                        cost(i, 3, quantity), cost(i, 4, quantity));
-        //                    found2 = true;
-        //                    break;
-        //                }
-        //            }
-        //            if (found2 == false)
-        //            {
-        //                for (int i = 0; i < items.Length - 1 && found2 == false; ++i)
-        //                {
-
-        //                }
-        //            }
-
-
-        //            second = false;
-        //        }
-        //    }
-        //}
-
         private void searchBox_TextChanged(object sender, EventArgs e)
         {
             //if text is greater than 3 search for item which include those letters
@@ -331,8 +348,13 @@ namespace EvE_Build
         {
             //start going though the yaml files to get data
             populateItemList();
+
+            //start updater thread
+            eveCentralBot = new Thread(EveThread);
+            eveCentralBot.Name = "eveCentralBot";
+            eveCentralBot.Start();
         }
-        
+
         void setDefaultSettings()
         {
             //set the default values
@@ -359,9 +381,30 @@ namespace EvE_Build
             optionsForm.ShowDialog();
         }
 
-        private Int64 cost(int typeID, int stationNo, Int64 qty)
+        private string cost(int typeID, int stationNo, Int64 qty)
         {
-            return prodMatPrices[typeID, stationNo] * qty;
+            Int64 numValue = prodMatPrices[stationNo, typeID, 1] * qty;
+            string output = (numValue).ToString();
+
+            if (output == "0")
+            {
+                return "0.00";
+            }
+            else if (numValue < 100)
+            {
+                return "0." + numValue;
+            }
+
+
+            //add indentations to make the cost look nice
+            int comma = (output.Length - 3) / 3;
+            output = output.Insert(output.Length - 2, ".");
+            for (int i = 1; i < comma + 1; ++i)
+            {
+                output = output.Insert((output.Length - 3) - (i * 3) - (i - 1), ",");
+            }
+
+            return output;
         }
     }
 }

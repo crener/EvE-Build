@@ -30,8 +30,8 @@ namespace EvE_Build
             copyskills;
         //float invProb = 0f;
 
-        Int64[] buyCost,
-            sellCost;
+        Int64[] buyCost = new Int64[5],
+            sellCost = new Int64[5];
 
         public Item(int blueprintID,int typeID)
         {

@@ -6,6 +6,8 @@ namespace EvE_Build
 {
     public class YAML
     {
+        int block = 1;
+
         public Item[] ImportData(string blueprintsFile, string nameFile)
         {
             Item[] Items = new Item[YdnItemSetup(blueprintsFile)];
@@ -14,7 +16,6 @@ namespace EvE_Build
             YdnSetName(nameFile, "en", ref Items);
             return Items;
         }
-
         int YdnItemSetup(string fileLocation)
         {
             int itemCount = 0;
@@ -30,9 +31,8 @@ namespace EvE_Build
                 //item object to make for the data import
                 ++itemCount;
             }
-            return itemCount;
+            return itemCount - block;
         }
-
         void YdnItemImport(string fileLocation, ref Item[] items)
         {
             //get input file
@@ -68,6 +68,11 @@ namespace EvE_Build
                 blueprintID = Int32.Parse(((YamlScalarNode)entry.Key).Value);
                 var currentEntry = (YamlMappingNode)map.Children[entry.Key];
                 YamlMappingNode activities = map;
+
+                if (blacklist(blueprintID))
+                {
+                    continue;
+                }
 
                 foreach(var item in currentEntry){
                     if ((item.Key).ToString() == "activities")
@@ -180,7 +185,6 @@ namespace EvE_Build
             itemCount = 0;
             file.Close();
         }
-
         void YdnSetName(string fileLocation, string language, ref Item[] items)
         {
             StreamReader file = new StreamReader(fileLocation);
@@ -539,6 +543,20 @@ namespace EvE_Build
             typeId = temp;
 
             return typeId;
+        }
+        bool blacklist(int check)
+        {
+            int[] blacklist = new int[block];
+            blacklist[0] = 3927;
+
+            foreach (int banned in blacklist)
+            {
+                if (check == banned)
+                {
+                    return true;
+                }
+            }
+            return false;
         }
     }
 }
