@@ -54,10 +54,6 @@ namespace EvE_Build
             }
             return false;
         }
-
-        /// <summary>
-        /// Populate the ListAllItems list in GUI and find out that the names of items are
-        /// </summary>
         private void populateItemList()
         {
             //create and populate items for the itemselector
@@ -189,7 +185,8 @@ namespace EvE_Build
 
                 while (true)
                 {
-                    System.Diagnostics.Debug.WriteLine(DateTime.Now.ToString("HH:mm:ss tt") + " Update cycle started");
+                    System.Diagnostics.Debug.WriteLine(DateTime.Now.ToString("HH:mm:ss tt")
+                        + " Update cycle started");
 
                     ToolError.Text = "";
                     ToolProgLbl.Text = "Updating Material Data";
@@ -286,7 +283,8 @@ namespace EvE_Build
                     }
 
                     //update item data
-                    System.Diagnostics.Debug.WriteLine(DateTime.Now.ToString("HH:mm:ss tt") + " Starting Item Update");
+                    System.Diagnostics.Debug.WriteLine(DateTime.Now.ToString("HH:mm:ss tt")
+                        + " Starting Item Update");
                     ToolProgLbl.Text = "Updating Item Data";
                     progress = 0;
                     setProgress((int)progress);
@@ -312,11 +310,8 @@ namespace EvE_Build
 
                         while (upto != items.Length - 1)
                         {
-                            System.Diagnostics.Debug.WriteLine(DateTime.Now.ToString("HH:mm:ss tt") +
-                            " Item Update Station:" + l + " of 4, itemCount: " + upto);
-
-                            progress += ( 100.0f / stationCount) / division;
-                            setProgress((int) progress);
+                            progress += (100.0f / stationCount) / division;
+                            setProgress((int)progress);
 
                             for (int i = 0; i <= loadChuck - 1 && upto != items.Length - 1; ++i)
                             {
@@ -394,7 +389,8 @@ namespace EvE_Build
                     }
                     ToolProgLbl.Text = "Data Updated";
                     setProgress(0);
-                    System.Diagnostics.Debug.WriteLine(DateTime.Now.ToString("HH:mm:ss tt") + " Update cycle completed");
+                    System.Diagnostics.Debug.WriteLine(DateTime.Now.ToString("HH:mm:ss tt")
+                        + " Update cycle completed");
                     Thread.Sleep(updateInterval * 60000);
                 }
             }
@@ -404,11 +400,14 @@ namespace EvE_Build
                 // Thead was aborted
             }
         }
+
         private void setProgress(int value)
         {
-            if ( ToolProgress.GetCurrentParent().InvokeRequired ){
-                ToolProgress.GetCurrentParent().Invoke(new MethodInvoker(delegate {
-                    ToolProgress.Value = value; 
+            if (ToolProgress.GetCurrentParent().InvokeRequired)
+            {
+                ToolProgress.GetCurrentParent().Invoke(new MethodInvoker(delegate
+                {
+                    ToolProgress.Value = value;
                 }));
             }
         }
@@ -473,7 +472,9 @@ namespace EvE_Build
 
                 if (second == false)
                 {
-                    quantity = (int)((value * (1 - (0.01 * MESlider.Value))) + 0.5f);
+                    float ME = (1 - (0.01f * MESlider.Value));
+
+                    quantity = CorrectRounding(value * ME);
                     second = true;
                 }
                 else if (second == true)
@@ -500,9 +501,14 @@ namespace EvE_Build
                         //item is in items
                         for (int i = 0; i < items.Length - 1 && found2 == false; ++i)
                         {
-                            if (items[i].getName() == name)
+                            if (items[i].getTypeID() == value)
                             {
-
+                                stationPrice[0] += getItemValue(items[i], 10, 0) * quantity;
+                                stationPrice[1] += getItemValue(items[i], 10, 1) * quantity;
+                                stationPrice[2] += getItemValue(items[i], 10, 2) * quantity;
+                                stationPrice[3] += getItemValue(items[i], 10, 3) * quantity;
+                                stationPrice[4] += getItemValue(items[i], 10, 4) * quantity;
+                                found2 = true;
                             }
                         }
                     }
@@ -519,9 +525,6 @@ namespace EvE_Build
             {
                 if (stationIds[s] != 0)
                 {
-                    //Int64[] itemCost = eveCentral.extractPrice(eveCentral.getWebData(stationIds[s], current.getTypeID()), current.getTypeID());
-                    //Int64 profit = itemCost[1] - stationPrice[s];
-
                     Int64 itemCost = current.getSellPrice(s);
                     Int64 profit = (itemCost - stationPrice[s]) / current.getProdQty();
                     float buildTime = ((current.getProdTime() / 60f) / 60f) * (float)(1 - (0.01 * TESlider.Value));
@@ -591,7 +594,7 @@ namespace EvE_Build
 
                 if (second == false)
                 {
-                    quantity = (int)((value * (1 - (0.01 * MESlider.Value))) + 0.5f);
+                    quantity = CorrectRounding(value * (1 - (0.01f * MESlider.Value)));
                     second = true;
                 }
                 else if (second == true)
@@ -616,11 +619,18 @@ namespace EvE_Build
                         //item is not normal, and must be an item that is in the item list
                         for (int i = 0; i < items.Length - 1 && found2 == false; ++i)
                         {
+                            if (items[i].getTypeID() == value)
+                            {
 
+                                table.Rows.Add(items[i].getName(), quantity,
+                                    format((getItemValue(items[i], 10, 0) * quantity).ToString()),
+                                format((getItemValue(items[i], 10, 1) * quantity).ToString()),
+                                format((getItemValue(items[i], 10, 2) * quantity).ToString()),
+                                format((getItemValue(items[i], 10, 3) * quantity).ToString()),
+                                format((getItemValue(items[i], 10, 4) * quantity).ToString()));
+                            }
                         }
                     }
-
-
                     second = false;
                 }
             }
@@ -628,6 +638,57 @@ namespace EvE_Build
             //put the data into the table so the user can see it
             ManufacturingTable.DataSource = new DataTable();
             ManufacturingTable.DataSource = table;
+        }
+
+        private Int64 getItemValue(Item search, int ME, int stationIndex)
+        {
+            Int64 cost = 0;
+            for (int i = 0; i < search.getProdMats().Length / 2; ++i)
+            {
+                if (search.getProdMats()[i, 1] != 0)
+                {
+                    int id = (int)search.getProdMats()[i, 1],
+                        qty = CorrectRounding((search.getProdMats()[i, 0]) * (1 - (0.01f * ME)));
+
+
+                    bool found = false;
+                    for (int m = 0; m < prodMatIds.Length - 1 && found == false; ++m)
+                    {
+                        if (prodMatIds[m] == id)
+                        {
+                            found = true;
+                            cost += prodMatPrices[stationIndex, m, 1] * qty;
+                        }
+                    }
+
+                    if (found == false)
+                    {
+                        //item not found, must be an item
+                        for (int m = 0; m < items.Length - 1 && found == false; ++m)
+                        {
+                            if (items[m].getTypeID() == id)
+                            {
+                                cost += getItemValue(search, ME, stationIndex) * qty;                                
+                                found = true;
+                            }
+                        }
+                    }
+                }
+            }
+
+            return cost;
+        }
+
+        private int CorrectRounding(float input)
+        {
+            int removeDigit = (int)input;
+            float postDot = input - removeDigit;
+
+            if (postDot > 0.0f)
+            {
+                return removeDigit + 1;
+            }
+                return removeDigit;
         }
 
         private void searchBox_TextChanged(object sender, EventArgs e)

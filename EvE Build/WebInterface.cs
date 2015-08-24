@@ -144,9 +144,6 @@ namespace EvE_Build
                 for (int i = 0; i < item.Length; ++i)
                 {
 
-                    //TODO remove the dot from the returned value to ensure that the point is carried (int64 doesn't support decimals)
-                    //TODO make sure that every time the user is given the cost values a dot is added for 0.xx isk
-
                     //check that the correct item is being read
                     reader.ReadToFollowing("type");
                     reader.MoveToFirstAttribute();
