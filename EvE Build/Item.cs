@@ -40,6 +40,14 @@ namespace EvE_Build
             this.blueprintID = blueprintID;
         }
 
+        public void setBuySell(Int64[] pricing, int station)
+        {
+            sellCost[station] = pricing[2];
+            buyCost[station] = pricing[1];
+        }
+
+        public Int64 getSellPrice(int station) { return sellCost[station];}
+        public Int64 getBuyPrice(int station) { return buyCost[station]; }
         public void setName(string name) { displayName = name; blueprintName = displayName + " Blueprint"; }
         public string getName()
         {
@@ -59,6 +67,7 @@ namespace EvE_Build
         }
         public void setProdLimit(int limit) { prodLmt = limit; }
         public void setProdTime(int time) { productionTime = time; }
+        public int getProdTime() { return productionTime; }
         public void setProdQty(int qty) { productionQty = qty; }
         public void setCopyTime(int time) { copyTime = time; }
         public void setMEtime(int time) { MEtime = time; }
@@ -120,30 +129,12 @@ namespace EvE_Build
             }
         }
         public int getTypeID() { return typeID; }
+        public int getBlueprintTypeID() { return blueprintID; }
         public int getProdQty() { return productionQty; }
         public int[,] getCopySkill() { return copyskills; }
         public int[,] getCopyMats() { return copyMats; }
         public int[,] getProdSkill() { return prodskills; }
         public Int64[,] getProdMats() { return prodMats; }
-        public Int64 getBuyPrice(int station) {
-
-            if (station > buyCost.Length - 1)
-            {
-                return 0;
-            }
-
-            return buyCost[station];
-        }
-        public Int64 getSellPrice(int station)
-        {
-
-            if (station > sellCost.Length - 1)
-            {
-                return 0;
-            }
-
-            return sellCost[station];
-        }
         public void setBuyPrice(int station, Int64 cost)
         {
             if (station > buyCost.Length - 1)

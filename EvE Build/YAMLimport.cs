@@ -6,13 +6,97 @@ namespace EvE_Build
 {
     public class YAML
     {
-        int block = 1;
+        int[] blacklist = new int[80];
 
+        public YAML()
+        {
+            blacklist[0] = 3927;
+            blacklist[1] = 4364;
+            blacklist[2] = 4389;
+            blacklist[3] = 32812;
+            blacklist[4] = 33624;
+            blacklist[5] = 33626;
+            blacklist[6] = 33628;
+            blacklist[7] = 33630;
+            blacklist[8] = 33632;
+            blacklist[9] = 33634;
+            blacklist[10] = 33636;
+            blacklist[11] = 33638;
+            blacklist[12] = 33640;
+            blacklist[13] = 33642;
+            blacklist[14] = 33644;
+            blacklist[15] = 33646;
+            blacklist[16] = 33648;
+            blacklist[17] = 33650;
+            blacklist[18] = 33652;
+            blacklist[19] = 33654;
+            blacklist[20] = 33656;
+            blacklist[21] = 33658;
+            blacklist[22] = 33660;
+            blacklist[23] = 33662;
+            blacklist[24] = 33664;
+            blacklist[25] = 33666;
+            blacklist[26] = 33668;
+            blacklist[27] = 33670;
+            blacklist[28] = 33684;
+            blacklist[29] = 33686;
+            blacklist[30] = 33688;
+            blacklist[31] = 33690;
+            blacklist[32] = 33692;
+            blacklist[33] = 33694;
+            blacklist[34] = 33696;
+            blacklist[35] = 33870;
+            blacklist[36] = 33872;
+            blacklist[37] = 33874;
+            blacklist[38] = 33876;
+            blacklist[39] = 33878;
+            blacklist[40] = 33880;
+            blacklist[41] = 33882;
+            blacklist[42] = 33884;
+            blacklist[43] = 34119;
+            blacklist[44] = 34153;
+            blacklist[45] = 34214;
+            blacklist[46] = 34216;
+            blacklist[47] = 34218;
+            blacklist[48] = 34220;
+            blacklist[49] = 34222;
+            blacklist[50] = 34224;
+            blacklist[51] = 34226;
+            blacklist[52] = 34228;
+            blacklist[53] = 34230;
+            blacklist[54] = 34232;
+            blacklist[55] = 34234;
+            blacklist[56] = 34236;
+            blacklist[57] = 34238;
+            blacklist[58] = 34240;
+            blacklist[59] = 34242;
+            blacklist[60] = 34244;
+            blacklist[61] = 34246;
+            blacklist[62] = 34248;
+            blacklist[63] = 34250;
+            blacklist[64] = 34252;
+            blacklist[65] = 34254;
+            blacklist[66] = 34256;
+            blacklist[67] = 34258;
+            blacklist[68] = 34340;
+            blacklist[69] = 34342;
+            blacklist[70] = 34344;
+            blacklist[71] = 34346;
+            blacklist[72] = 34442;
+            blacklist[73] = 34444;
+            blacklist[74] = 34446;
+            blacklist[75] = 681;
+            blacklist[76] = 682;
+            blacklist[77] = 3927;
+            blacklist[78] = 23736;
+            blacklist[79] = 935;
+
+        }
         public Item[] ImportData(string blueprintsFile, string nameFile)
         {
             Item[] Items = new Item[YdnItemSetup(blueprintsFile)];
 
-            YdnItemImport(blueprintsFile, ref Items);
+            Items = YdnItemImport(blueprintsFile, ref Items);
             YdnSetName(nameFile, "en", ref Items);
             return Items;
         }
@@ -31,9 +115,9 @@ namespace EvE_Build
                 //item object to make for the data import
                 ++itemCount;
             }
-            return itemCount - block;
+            return itemCount - (blacklist.Length - 1);
         }
-        void YdnItemImport(string fileLocation, ref Item[] items)
+        Item[] YdnItemImport(string fileLocation, ref Item[] items)
         {
             //get input file
             StreamReader file = new StreamReader(fileLocation);
@@ -69,7 +153,7 @@ namespace EvE_Build
                 var currentEntry = (YamlMappingNode)map.Children[entry.Key];
                 YamlMappingNode activities = map;
 
-                if (blacklist(blueprintID))
+                if (Blacklist(blueprintID))
                 {
                     continue;
                 }
@@ -170,20 +254,45 @@ namespace EvE_Build
                 }
 
                 //pass in all the values that have been collected
-                items[itemCount] = new Item(blueprintID, itemID);
-                items[itemCount].setProdskills(prodskills);
-                items[itemCount].setProdMats(prodMats);
-                items[itemCount].setProdTime(prodTime);
-                items[itemCount].setProdQty(prodQty);
-                items[itemCount].setProdLimit(prodLmt);
-                items[itemCount].setCopyTime(copyTime);
-                items[itemCount].setCopySkills(copyskills);
-                items[itemCount].setCopyMats(copyMats);
+                Item potentialItem = new Item(blueprintID, itemID);
+                potentialItem.setProdskills(prodskills);
+                potentialItem.setProdMats(prodMats);
+                potentialItem.setProdTime(prodTime);
+                potentialItem.setProdQty(prodQty);
+                potentialItem.setProdLimit(prodLmt);
+                potentialItem.setCopyTime(copyTime);
+                potentialItem.setCopySkills(copyskills);
+                potentialItem.setCopyMats(copyMats);
 
-                ++itemCount;
+                if (QualityControl(potentialItem))
+                {
+                    items[itemCount] = potentialItem;
+                    ++itemCount;
+                }
             }
             itemCount = 0;
             file.Close();
+
+            //Remove Nulls
+            int total = 0;
+            foreach (Item item in items)
+            {
+                if (item != null)
+                {
+                    ++total;
+                }
+            }
+            Item[] output = new Item[total];
+            total = 0;
+            foreach (Item thing in items)
+            {
+                if (thing != null)
+                {
+                    output[total] = thing;
+                    ++total;
+                }
+            }
+            return output;
         }
         void YdnSetName(string fileLocation, string language, ref Item[] items)
         {
@@ -544,11 +653,18 @@ namespace EvE_Build
 
             return typeId;
         }
-        bool blacklist(int check)
+        private bool QualityControl(Item thing)
         {
-            int[] blacklist = new int[block];
-            blacklist[0] = 3927;
+            //ensure it has materials
+            if (thing.getProdMats()[0, 0] == 0 && thing.getProdMats()[0, 1] == 0)
+            {
+                return false;
+            }
 
+            return true;
+        }
+        bool Blacklist(int check)
+        {
             foreach (int banned in blacklist)
             {
                 if (check == banned)
