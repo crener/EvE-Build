@@ -630,41 +630,6 @@ namespace EvE_Build
             ManufacturingTable.DataSource = table;
         }
 
-        private void AdvanceMaterialsStart()
-        {
-            //reset all controls to standared level
-            int defaultMELevel = 10,
-                defaultTELevel = 20;
-
-            Name1.Visible = false;
-            Name2.Visible = false;
-            Name3.Visible = false;
-            Name4.Visible = false;
-            Name5.Visible = false;
-            Name6.Visible = false;
-            Name7.Visible = false;
-            Name8.Visible = false;
-            Name9.Visible = false;
-            Name10.Visible = false;
-            Name11.Visible = false;
-            Name12.Visible = false;
-
-            ME1.Value = defaultMELevel;
-            ME2.Value = defaultMELevel;
-            ME3.Value = defaultMELevel;
-            ME4.Value = defaultMELevel;
-            ME5.Value = defaultMELevel;
-            ME6.Value = defaultMELevel;
-            ME7.Value = defaultMELevel;
-            ME8.Value = defaultMELevel;
-            ME9.Value = defaultMELevel;
-            ME10.Value = defaultMELevel;
-            ME11.Value = defaultMELevel;
-            ME12.Value = defaultMELevel;
-
-            TE1.Value = defaultTELevel;
-        }
-
         private void searchBox_TextChanged(object sender, EventArgs e)
         {
             //if text is greater than 3 search for item which include those letters
