@@ -16,13 +16,14 @@ namespace EvE_Build
     public partial class MainWindow : Form
     {
         Item[] items;
-        Thread eveCentralBot,
-            littleMinion;
+        Thread eveCentralBot;
+
         int[] prodMatIds,
             skills;
         Int64[, ,] prodMatPrices;
         string[] prodMatNames,
             skillNames;
+
         List<string> listItems;
 
         WebInterface eveCentral = new WebInterface();
@@ -54,6 +55,7 @@ namespace EvE_Build
             }
             return false;
         }
+        
         private void populateItemList()
         {
             //create and populate items for the itemselector
@@ -183,6 +185,21 @@ namespace EvE_Build
                     }
                 }
 
+                //sleep for the refresh time if the user doesn't want to load data on startup
+                if (updateOnStartup == false)
+                {
+                    if (updateInterval > 1)
+                    {
+                        ToolProgLbl.Text = "Update on start up disabled, waiting " + updateInterval + " min";
+                    }
+                    else
+                    {
+                        ToolProgLbl.Text = "Update on start up disabled, waiting " + updateInterval + " mins";
+                    }
+                    ToolError.Text = "";
+                    Thread.Sleep(updateInterval * 60000);
+                }
+
                 while (true)
                 {
                     System.Diagnostics.Debug.WriteLine(DateTime.Now.ToString("HH:mm:ss tt")
@@ -191,19 +208,21 @@ namespace EvE_Build
                     ToolError.Text = "";
                     ToolProgLbl.Text = "Updating Material Data";
                     setProgress((int)progress);
+                    int loadChuck = 50;
+                    int division = (items.Length - 1) / loadChuck;
 
                     //update station data
-                    for (int l = 0; l < 5; ++l)
+                    for (int l = 0; l < 5 && stationIds[l] != 0; ++l)
                     {
                         int upto = 0;
                         int[] search = new int[50];
                         string data = "";
 
-                        try
+                        if (l != 0)
                         {
-                            progress = stationCount / (l * 100);
+                            progress = (l * 100.0f) / stationCount;
                         }
-                        catch (DivideByZeroException)
+                        else
                         {
                             progress = 0;
                         }
@@ -211,6 +230,9 @@ namespace EvE_Build
 
                         while (upto != prodMatIds.Length - 1)
                         {
+                            progress += (100.0f / stationCount) / division;
+                            setProgress((int)progress);
+
                             for (int i = 0; i <= 49 && upto != prodMatIds.Length - 1; ++i)
                             {
                                 search[i] = prodMatIds[upto];
@@ -247,7 +269,6 @@ namespace EvE_Build
                                     ToolError.Text = "WebError, some items will not have updated information";
                                 }
                             }
-
 
                             search = new int[50];
                         }
@@ -294,19 +315,18 @@ namespace EvE_Build
                         int upto = 0;
                         int[] search = new int[50];
                         string data = "";
-                        int loadChuck = 50;
+                        loadChuck = 50;
 
                         if (l != 0)
                         {
-                            progress = stationCount / (l * 100);
+                            progress = (l * 100.0f) / stationCount;
                         }
                         else
                         {
                             progress = 0;
                         }
-
                         setProgress((int)progress);
-                        int division = (items.Length - 1) / loadChuck;
+                        division = (items.Length - 1) / loadChuck;
 
                         while (upto != items.Length - 1)
                         {
@@ -341,7 +361,14 @@ namespace EvE_Build
                             }
                             else
                             {
+                                try
+                                {
                                 data = eveBotInterface.getWebData(stationIds[l], search);
+                                }
+                                catch (WebException)
+                                {
+                                    ToolError.Text = "WebError, some items will not have updated information";
+                                }
                             }
 
 
@@ -379,7 +406,14 @@ namespace EvE_Build
                                 //item layer
                                 for (int m = 0; m < 2; ++m)
                                 {
-                                    items[i].setSellPrice(l, dataCheck[i, m]);
+                                    if (m == 0)
+                                    {
+                                        items[i].setBuyPrice(l, dataCheck[i, m]);
+                                    }
+                                    else if(m == 1)
+                                    {
+                                        items[i].setSellPrice(l, dataCheck[i, m]);
+                                    }
                                     //prodMatPrices[l, i, m] = dataCheck[i, m];
                                 }
                             }
@@ -428,8 +462,8 @@ namespace EvE_Build
 
             //work out the profitability
             DisplayName.Text = itemSelectAll.SelectedItem.ToString();
-            DisplayType.Text = (NametoItemIndex(itemSelectAll.SelectedItem.ToString())).ToString();
-            DisplayBType.Text = NametoBlueprintID(itemSelectAll.SelectedItem.ToString());
+            DisplayType.Text = "ID" + (NametoItemIndex(itemSelectAll.SelectedItem.ToString())).ToString();
+            DisplayBType.Text = "B" + NametoBlueprintID(itemSelectAll.SelectedItem.ToString());
 
             Profit();
         }
@@ -441,7 +475,8 @@ namespace EvE_Build
             table.Columns.Add("Station", typeof(string));
             table.Columns.Add("Build Cost", typeof(string));
             table.Columns.Add("Item Cost", typeof(string));
-            table.Columns.Add("Proft?", typeof(string));
+            table.Columns.Add("Sell Proft?", typeof(string));
+            table.Columns.Add("Buy Proft?", typeof(string));
             table.Columns.Add("Isk per Hour", typeof(string));
             table.Columns.Add("Investment/Profit", typeof(float));
 
@@ -503,12 +538,10 @@ namespace EvE_Build
                         {
                             if (items[i].getTypeID() == value)
                             {
-                                stationPrice[0] += getItemValue(items[i], 10, 0) * quantity;
-                                stationPrice[1] += getItemValue(items[i], 10, 1) * quantity;
-                                stationPrice[2] += getItemValue(items[i], 10, 2) * quantity;
-                                stationPrice[3] += getItemValue(items[i], 10, 3) * quantity;
-                                stationPrice[4] += getItemValue(items[i], 10, 4) * quantity;
-                                found2 = true;
+                                for (int k = 0; k < 5; ++k)
+                                {
+                                    stationPrice[k] += getItemValue(items[i], 10, k) * quantity;
+                                }
                             }
                         }
                     }
@@ -519,33 +552,48 @@ namespace EvE_Build
             string[] stationBuild = new string[5];
             for (int i = 0; i < 5; ++i)
             {
-                stationBuild[i] = format(stationPrice[i].ToString());
+                stationBuild[i] = format((stationPrice[i] / current.getProdQty()).ToString());
             }
             for (int s = 0; s < 5; ++s)
             {
                 if (stationIds[s] != 0)
                 {
-                    Int64 itemCost = current.getSellPrice(s);
-                    Int64 profit = (itemCost - stationPrice[s]) / current.getProdQty();
+                    Int64 sellProfit = current.getSellPrice(s) - (stationPrice[s] / current.getProdQty()),
+                        buyProfit = current.getBuyPrice(s) - (stationPrice[s] / current.getProdQty()),
+                        iskHr = new Int64();
                     float buildTime = ((current.getProdTime() / 60f) / 60f) * (float)(1 - (0.01 * TESlider.Value));
-                    Int64 iskHr = (Int64)(profit / buildTime);
+
+                    //profit baseed on buy or sell
+                    if (sellorBuyCheck.Checked)
+                    {
+                        //profit based on buy
+                        iskHr = (Int64)((buyProfit * current.getProdQty()) / buildTime);
+                    }
+                    else
+                    {
+                        //profit based on sell
+                        iskHr = (Int64)((sellProfit * current.getProdQty()) / buildTime);
+                    }
+                    
 
                     if (stationPrice[s] != 0)
                     {
                         table.Rows.Add(stationNames[s],
                             stationBuild[s],
-                            format(itemCost.ToString()),
-                            format(profit.ToString()),
+                            format(current.getSellPrice(s).ToString()),
+                            format(sellProfit.ToString()),
+                            format(buyProfit.ToString()),
                             format(iskHr.ToString()),
-                            (profit * 1.0f) / stationPrice[s]);
+                            (sellProfit * 1.0f) / stationPrice[s]);
                     }
                     else
                     {
                         //no station price data, don't bother with staion specific stuff
                         table.Rows.Add(stationNames[s],
                             stationBuild[s],
-                            format((itemCost).ToString()),
-                            format((profit).ToString()),
+                            format(current.getSellPrice(s).ToString()),
+                            format(sellProfit.ToString()),
+                            format(buyProfit.ToString()),
                             "0",
                             0.0f);
                     }
@@ -664,11 +712,17 @@ namespace EvE_Build
                     if (found == false)
                     {
                         //item not found, must be an item
+
+                        if (id == search.getTypeID())
+                        {
+                            return cost;
+                        }
+
                         for (int m = 0; m < items.Length - 1 && found == false; ++m)
                         {
                             if (items[m].getTypeID() == id)
                             {
-                                cost += getItemValue(search, ME, stationIndex) * qty;                                
+                                cost += getItemValue(items[m], ME, stationIndex) * qty;
                                 found = true;
                             }
                         }
@@ -688,7 +742,7 @@ namespace EvE_Build
             {
                 return removeDigit + 1;
             }
-                return removeDigit;
+            return removeDigit;
         }
 
         private void searchBox_TextChanged(object sender, EventArgs e)
@@ -760,13 +814,16 @@ namespace EvE_Build
             stationIds[3] = 0;
             stationIds[4] = 0;
 
-            updateOnStartup = false;
+            updateOnStartup = true;
         }
 
         private void optionsToolStripMenuItem_Click(object sender, EventArgs e)
         {
             Options optionsForm = new Options(stationNames, stationIds, updateOnStartup, updateInterval);
             optionsForm.ShowDialog();
+
+            //presumably there were changes made, so reloadd the settings
+            Settings();
         }
 
         private string cost(int typeID, int stationNo, Int64 qty)
@@ -860,6 +917,194 @@ namespace EvE_Build
         }
 
         private void TESlider_Scroll(object sender, EventArgs e)
+        {
+            WorkOutData();
+        }
+
+        private void OverviewStart_Click(object sender, EventArgs e)
+        {
+            string[] tableNames = new string[5];
+            for(int i = 0; i < 5; ++i){
+                if(stationNames[i] != "" && stationNames[i] != null){
+                    tableNames[i] = stationNames[i] + " profit";
+                }
+                else
+                {
+                    tableNames[i] = "Set station " + i;
+                }
+            }
+
+            DataTable table = new DataTable();
+            table.Columns.Add("Name", typeof(string));
+            table.Columns.Add(tableNames[0], typeof(Int64));
+            table.Columns.Add(tableNames[1], typeof(Int64));
+            table.Columns.Add(tableNames[2], typeof(Int64));
+            table.Columns.Add(tableNames[3], typeof(Int64));
+            table.Columns.Add(tableNames[4], typeof(Int64));
+            table.Columns.Add("Best Isk/Hr", typeof(Int64));
+            table.Columns.Add("Investment/Profit", typeof(float));
+
+            Int64[] value = new Int64[5],
+                profit = new Int64[5];
+            Int64 bestIskHr = new Int64();
+            float bestRatio = new float();
+            bool faction = OverviewFaction.Checked;
+            string[] factions = new string[44];
+            bool invalid = false;
+
+            factions[0] = "Navy";
+            factions[1] = "Shadow";
+            factions[2] = "ORE";
+            factions[3] = "Syndicate";
+            factions[4] = "Ammatar";
+            factions[5] = "Dark Blood";
+            factions[6] = "Imperial";
+            factions[7] = "Khniad";
+            factions[8] = "Sansha";
+            factions[9] = "Motte";
+            factions[10] = "Republic";
+            factions[11] = "Guristas";
+            factions[12] = "Black Eagle";
+            factions[13] = "Sentient";
+            factions[41] = "Sisters";
+            factions[40] = "Domination";
+            factions[42] = "Angel";
+
+            factions[43] = "Compressed";
+
+            factions[14] = "Deuce";
+            factions[15] = "Legion";
+            factions[16] = "Thukker";
+
+            factions[17] = "Ahremen";
+            factions[18] = "Brokara";
+            factions[19] = "Chelm";
+            factions[20] = "Draclira";
+            factions[21] = "Makur";
+            factions[22] = "Raysere";
+            factions[23] = "Selynne";
+            factions[24] = "Tairei";
+            factions[25] = "Vizan";
+            factions[26] = "Gotan";
+            factions[27] = "Hakim";
+            factions[28] = "Mizuro";
+            factions[29] = "Tobias";
+            factions[30] = "Brynn";
+            factions[31] = "Cormack";
+            factions[32] = "Estamel";
+            factions[33] = "Kaikka";
+            factions[34] = "Setele";
+            factions[35] = "Thon";
+            factions[36] = "Tuvan";
+            factions[37] = "Vepas";
+            factions[38] = "Unit";
+            factions[39] = "Shaqil";
+
+            foreach (Item current in items)
+            {
+                //check for faction stuff
+                if (faction && current.getName() != null)
+                {
+
+                    for (int i = 0; i <= factions.Length - 1 && invalid == false; ++i)
+                    {
+                        if (current.getName().Contains(factions[i]))
+                        {
+                            invalid = true;
+                        }
+                    }
+                }
+                
+                if (invalid)
+                {
+                    invalid = false;
+                    continue;
+                }
+
+                //ensure item isn't chinese
+                if (current.getName() == "" || checkAlphanumeric(current.getName()) == false )
+                {
+                    continue;
+                }
+
+                for (int i = 0; i < 5; ++i)
+                {
+                    if (stationIds[i] != 0)
+                    {
+                        value[i] = getItemValue(current, (int)OverviewME.Value, i);
+                        profit[i] = current.getSellPrice(i) - value[i];
+                    }
+                }
+
+                //best Isk/Hr
+                float buildTime = ((current.getProdTime() / 60f) / 60f) * (float)(1 - (0.01 * TESlider.Value));
+                for (int i = 0; i < 5; ++i)
+                {
+                    if (stationIds[i] != 0)
+                    {
+                        if ((profit[i] / buildTime) > bestIskHr)
+                        {
+                            bestIskHr = (Int64)(profit[i] / buildTime);
+                        }
+                    }
+                }
+
+                //best Investment to Profit Ratio
+                for (int i = 0; i < 5; ++i)
+                {
+                    if (stationIds[i] != 0)
+                    {
+                        if (((profit[i] * 1.0f) / value[i]) > bestRatio)
+                        {
+                            bestRatio = ((profit[i] * 1.0f) / value[i]);
+                        }
+                    }
+                }
+
+                //table.Rows.Add(current.getName(),
+                //  format(profit[0].ToString()),
+                //  format(profit[1].ToString()),
+                //  format(profit[2].ToString()),
+                //  format(profit[3].ToString()),
+                //  format(profit[4].ToString()),
+                //  format(bestIskHr.ToString()),
+                //  bestRatio);
+
+                table.Rows.Add(current.getName(),
+                  profit[0],
+                  profit[1],
+                  profit[2],
+                  profit[3],
+                  profit[4],
+                  bestIskHr,
+                  bestRatio);
+
+                bestIskHr = 0;
+                bestRatio = 0.0f;
+            }
+
+            OverviewTable.DataSource = table;
+        }
+
+        private void tabPage2_Open(object sender, EventArgs e)
+        {
+            //format the treeview if it is the first time opeining it since program start
+            if (GroupView.Nodes.Count == 0 )
+            {
+                SetupTreeView();
+            }
+        }
+
+        private void SetupTreeView()
+        {
+
+
+
+
+
+        }
+
+        private void sellorBuyCheck_CheckedChanged(object sender, EventArgs e)
         {
             WorkOutData();
         }

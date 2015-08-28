@@ -37,6 +37,7 @@
             this.UpdateIntervalOptions = new System.Windows.Forms.Label();
             this.UpdateInvervalSelect = new System.Windows.Forms.NumericUpDown();
             this.StartUPOptions = new System.Windows.Forms.TabPage();
+            this.updateStartup = new System.Windows.Forms.CheckBox();
             this.StationPage = new System.Windows.Forms.TabPage();
             this.label9 = new System.Windows.Forms.Label();
             this.label8 = new System.Windows.Forms.Label();
@@ -57,7 +58,6 @@
             this.label2 = new System.Windows.Forms.Label();
             this.Station1Name = new System.Windows.Forms.TextBox();
             this.label1 = new System.Windows.Forms.Label();
-            this.updateStartup = new System.Windows.Forms.CheckBox();
             this.OptionsTabs.SuspendLayout();
             this.GeneralOptions.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.UpdateInvervalSelect)).BeginInit();
@@ -166,6 +166,17 @@
             this.StartUPOptions.TabIndex = 1;
             this.StartUPOptions.Text = "Start-Up";
             this.StartUPOptions.UseVisualStyleBackColor = true;
+            // 
+            // updateStartup
+            // 
+            this.updateStartup.AutoSize = true;
+            this.updateStartup.Location = new System.Drawing.Point(8, 6);
+            this.updateStartup.Name = "updateStartup";
+            this.updateStartup.Size = new System.Drawing.Size(155, 17);
+            this.updateStartup.TabIndex = 0;
+            this.updateStartup.Text = "Update all prices on startup";
+            this.updateStartup.UseVisualStyleBackColor = true;
+            this.updateStartup.CheckedChanged += new System.EventHandler(this.updateStartup_CheckedChanged);
             // 
             // StationPage
             // 
@@ -331,6 +342,7 @@
             // 
             this.Station1ID.Location = new System.Drawing.Point(189, 31);
             this.Station1ID.MaxLength = 8;
+            this.Station1ID.Multiline = true;
             this.Station1ID.Name = "Station1ID";
             this.Station1ID.Size = new System.Drawing.Size(100, 20);
             this.Station1ID.TabIndex = 3;
@@ -361,17 +373,6 @@
             this.label1.Size = new System.Drawing.Size(49, 13);
             this.label1.TabIndex = 0;
             this.label1.Text = "Station 1";
-            // 
-            // updateStartup
-            // 
-            this.updateStartup.AutoSize = true;
-            this.updateStartup.Location = new System.Drawing.Point(8, 6);
-            this.updateStartup.Name = "updateStartup";
-            this.updateStartup.Size = new System.Drawing.Size(155, 17);
-            this.updateStartup.TabIndex = 0;
-            this.updateStartup.Text = "Update all prices on startup";
-            this.updateStartup.UseVisualStyleBackColor = true;
-            this.updateStartup.CheckedChanged += new System.EventHandler(this.updateStartup_CheckedChanged);
             // 
             // Options
             // 

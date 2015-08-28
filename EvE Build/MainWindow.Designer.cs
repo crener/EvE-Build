@@ -29,9 +29,10 @@
         private void InitializeComponent()
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainWindow));
-            this.Tab = new System.Windows.Forms.TabControl();
+            this.TabControl = new System.Windows.Forms.TabControl();
             this.TabManufacture = new System.Windows.Forms.TabPage();
             this.splitContainer2 = new System.Windows.Forms.SplitContainer();
+            this.sellorBuyCheck = new System.Windows.Forms.CheckBox();
             this.DisplayBType = new System.Windows.Forms.Label();
             this.TEL = new System.Windows.Forms.Label();
             this.TESlider = new System.Windows.Forms.TrackBar();
@@ -41,12 +42,22 @@
             this.DisplayName = new System.Windows.Forms.Label();
             this.MESlider = new System.Windows.Forms.TrackBar();
             this.ManufacturingTable = new System.Windows.Forms.DataGridView();
+            this.Overview = new System.Windows.Forms.TabPage();
+            this.splitContainer5 = new System.Windows.Forms.SplitContainer();
+            this.OverviewFaction = new System.Windows.Forms.CheckBox();
+            this.OverviewStart = new System.Windows.Forms.Button();
+            this.label2 = new System.Windows.Forms.Label();
+            this.OverviewTE = new System.Windows.Forms.NumericUpDown();
+            this.label1 = new System.Windows.Forms.Label();
+            this.OverviewME = new System.Windows.Forms.NumericUpDown();
+            this.OverviewTable = new System.Windows.Forms.DataGridView();
             this.itemSelectAll = new System.Windows.Forms.ListBox();
             this.ItemTabs = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
             this.splitContainer3 = new System.Windows.Forms.SplitContainer();
             this.searchBox = new System.Windows.Forms.TextBox();
             this.tabPage2 = new System.Windows.Forms.TabPage();
+            this.GroupView = new System.Windows.Forms.TreeView();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.optionsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -55,7 +66,7 @@
             this.ToolProgLbl = new System.Windows.Forms.ToolStripStatusLabel();
             this.ToolError = new System.Windows.Forms.ToolStripStatusLabel();
             this.splitContainer4 = new System.Windows.Forms.SplitContainer();
-            this.Tab.SuspendLayout();
+            this.TabControl.SuspendLayout();
             this.TabManufacture.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer2)).BeginInit();
             this.splitContainer2.Panel1.SuspendLayout();
@@ -65,12 +76,21 @@
             ((System.ComponentModel.ISupportInitialize)(this.ProfitView)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.MESlider)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.ManufacturingTable)).BeginInit();
+            this.Overview.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.splitContainer5)).BeginInit();
+            this.splitContainer5.Panel1.SuspendLayout();
+            this.splitContainer5.Panel2.SuspendLayout();
+            this.splitContainer5.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.OverviewTE)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.OverviewME)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.OverviewTable)).BeginInit();
             this.ItemTabs.SuspendLayout();
             this.tabPage1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer3)).BeginInit();
             this.splitContainer3.Panel1.SuspendLayout();
             this.splitContainer3.Panel2.SuspendLayout();
             this.splitContainer3.SuspendLayout();
+            this.tabPage2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
@@ -83,15 +103,16 @@
             this.splitContainer4.SuspendLayout();
             this.SuspendLayout();
             // 
-            // Tab
+            // TabControl
             // 
-            this.Tab.Controls.Add(this.TabManufacture);
-            this.Tab.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.Tab.Location = new System.Drawing.Point(0, 0);
-            this.Tab.Name = "Tab";
-            this.Tab.SelectedIndex = 0;
-            this.Tab.Size = new System.Drawing.Size(739, 510);
-            this.Tab.TabIndex = 1;
+            this.TabControl.Controls.Add(this.TabManufacture);
+            this.TabControl.Controls.Add(this.Overview);
+            this.TabControl.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.TabControl.Location = new System.Drawing.Point(0, 0);
+            this.TabControl.Name = "TabControl";
+            this.TabControl.SelectedIndex = 0;
+            this.TabControl.Size = new System.Drawing.Size(739, 510);
+            this.TabControl.TabIndex = 1;
             // 
             // TabManufacture
             // 
@@ -113,6 +134,7 @@
             // 
             // splitContainer2.Panel1
             // 
+            this.splitContainer2.Panel1.Controls.Add(this.sellorBuyCheck);
             this.splitContainer2.Panel1.Controls.Add(this.DisplayBType);
             this.splitContainer2.Panel1.Controls.Add(this.TEL);
             this.splitContainer2.Panel1.Controls.Add(this.TESlider);
@@ -129,6 +151,17 @@
             this.splitContainer2.SplitterDistance = 311;
             this.splitContainer2.TabIndex = 2;
             // 
+            // sellorBuyCheck
+            // 
+            this.sellorBuyCheck.AutoSize = true;
+            this.sellorBuyCheck.Location = new System.Drawing.Point(203, 43);
+            this.sellorBuyCheck.Name = "sellorBuyCheck";
+            this.sellorBuyCheck.Size = new System.Drawing.Size(272, 17);
+            this.sellorBuyCheck.TabIndex = 8;
+            this.sellorBuyCheck.Text = "Isk/hr and inv/profit calculations based on buy profit";
+            this.sellorBuyCheck.UseVisualStyleBackColor = true;
+            this.sellorBuyCheck.CheckedChanged += new System.EventHandler(this.sellorBuyCheck_CheckedChanged);
+            // 
             // DisplayBType
             // 
             this.DisplayBType.AutoSize = true;
@@ -141,7 +174,7 @@
             // TEL
             // 
             this.TEL.AutoSize = true;
-            this.TEL.Location = new System.Drawing.Point(120, 131);
+            this.TEL.Location = new System.Drawing.Point(117, 44);
             this.TEL.Name = "TEL";
             this.TEL.Size = new System.Drawing.Size(50, 13);
             this.TEL.TabIndex = 6;
@@ -149,7 +182,7 @@
             // 
             // TESlider
             // 
-            this.TESlider.Location = new System.Drawing.Point(106, 147);
+            this.TESlider.Location = new System.Drawing.Point(103, 60);
             this.TESlider.Maximum = 20;
             this.TESlider.Name = "TESlider";
             this.TESlider.Size = new System.Drawing.Size(94, 45);
@@ -170,7 +203,6 @@
             // 
             this.ProfitView.AllowUserToAddRows = false;
             this.ProfitView.AllowUserToDeleteRows = false;
-            this.ProfitView.AllowUserToResizeColumns = false;
             this.ProfitView.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.ProfitView.Dock = System.Windows.Forms.DockStyle.Bottom;
             this.ProfitView.Location = new System.Drawing.Point(0, 198);
@@ -183,7 +215,7 @@
             // MEL
             // 
             this.MEL.AutoSize = true;
-            this.MEL.Location = new System.Drawing.Point(20, 131);
+            this.MEL.Location = new System.Drawing.Point(17, 44);
             this.MEL.Name = "MEL";
             this.MEL.Size = new System.Drawing.Size(52, 13);
             this.MEL.TabIndex = 2;
@@ -201,7 +233,7 @@
             // 
             // MESlider
             // 
-            this.MESlider.Location = new System.Drawing.Point(6, 147);
+            this.MESlider.Location = new System.Drawing.Point(3, 60);
             this.MESlider.Name = "MESlider";
             this.MESlider.Size = new System.Drawing.Size(94, 45);
             this.MESlider.TabIndex = 0;
@@ -212,16 +244,118 @@
             // 
             this.ManufacturingTable.AllowUserToAddRows = false;
             this.ManufacturingTable.AllowUserToDeleteRows = false;
-            this.ManufacturingTable.AllowUserToResizeColumns = false;
             this.ManufacturingTable.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.ManufacturingTable.Dock = System.Windows.Forms.DockStyle.Fill;
             this.ManufacturingTable.Location = new System.Drawing.Point(0, 0);
             this.ManufacturingTable.Name = "ManufacturingTable";
-            this.ManufacturingTable.ReadOnly = true;
-            this.ManufacturingTable.RowHeadersWidthSizeMode = System.Windows.Forms.DataGridViewRowHeadersWidthSizeMode.AutoSizeToAllHeaders;
             this.ManufacturingTable.RowTemplate.Height = 18;
             this.ManufacturingTable.Size = new System.Drawing.Size(725, 163);
             this.ManufacturingTable.TabIndex = 0;
+            // 
+            // Overview
+            // 
+            this.Overview.Controls.Add(this.splitContainer5);
+            this.Overview.Location = new System.Drawing.Point(4, 22);
+            this.Overview.Name = "Overview";
+            this.Overview.Padding = new System.Windows.Forms.Padding(3);
+            this.Overview.Size = new System.Drawing.Size(731, 484);
+            this.Overview.TabIndex = 1;
+            this.Overview.Text = "Overview";
+            this.Overview.UseVisualStyleBackColor = true;
+            // 
+            // splitContainer5
+            // 
+            this.splitContainer5.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.splitContainer5.Location = new System.Drawing.Point(3, 3);
+            this.splitContainer5.Name = "splitContainer5";
+            this.splitContainer5.Orientation = System.Windows.Forms.Orientation.Horizontal;
+            // 
+            // splitContainer5.Panel1
+            // 
+            this.splitContainer5.Panel1.Controls.Add(this.OverviewFaction);
+            this.splitContainer5.Panel1.Controls.Add(this.OverviewStart);
+            this.splitContainer5.Panel1.Controls.Add(this.label2);
+            this.splitContainer5.Panel1.Controls.Add(this.OverviewTE);
+            this.splitContainer5.Panel1.Controls.Add(this.label1);
+            this.splitContainer5.Panel1.Controls.Add(this.OverviewME);
+            // 
+            // splitContainer5.Panel2
+            // 
+            this.splitContainer5.Panel2.Controls.Add(this.OverviewTable);
+            this.splitContainer5.Size = new System.Drawing.Size(725, 478);
+            this.splitContainer5.SplitterDistance = 26;
+            this.splitContainer5.TabIndex = 1;
+            // 
+            // OverviewFaction
+            // 
+            this.OverviewFaction.AutoSize = true;
+            this.OverviewFaction.Location = new System.Drawing.Point(256, 5);
+            this.OverviewFaction.Name = "OverviewFaction";
+            this.OverviewFaction.Size = new System.Drawing.Size(122, 17);
+            this.OverviewFaction.TabIndex = 5;
+            this.OverviewFaction.Text = "Ignore Faction Items";
+            this.OverviewFaction.UseVisualStyleBackColor = true;
+            // 
+            // OverviewStart
+            // 
+            this.OverviewStart.Location = new System.Drawing.Point(82, 1);
+            this.OverviewStart.Name = "OverviewStart";
+            this.OverviewStart.Size = new System.Drawing.Size(75, 23);
+            this.OverviewStart.TabIndex = 4;
+            this.OverviewStart.Text = "Refresh";
+            this.OverviewStart.UseVisualStyleBackColor = true;
+            this.OverviewStart.Click += new System.EventHandler(this.OverviewStart_Click);
+            // 
+            // label2
+            // 
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(163, 5);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(21, 13);
+            this.label2.TabIndex = 3;
+            this.label2.Text = "TE";
+            // 
+            // OverviewTE
+            // 
+            this.OverviewTE.Location = new System.Drawing.Point(190, 3);
+            this.OverviewTE.Maximum = new decimal(new int[] {
+            20,
+            0,
+            0,
+            0});
+            this.OverviewTE.Name = "OverviewTE";
+            this.OverviewTE.Size = new System.Drawing.Size(46, 20);
+            this.OverviewTE.TabIndex = 2;
+            // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(3, 5);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(23, 13);
+            this.label1.TabIndex = 1;
+            this.label1.Text = "ME";
+            // 
+            // OverviewME
+            // 
+            this.OverviewME.Location = new System.Drawing.Point(32, 3);
+            this.OverviewME.Maximum = new decimal(new int[] {
+            10,
+            0,
+            0,
+            0});
+            this.OverviewME.Name = "OverviewME";
+            this.OverviewME.Size = new System.Drawing.Size(46, 20);
+            this.OverviewME.TabIndex = 2;
+            // 
+            // OverviewTable
+            // 
+            this.OverviewTable.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.OverviewTable.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.OverviewTable.Location = new System.Drawing.Point(0, 0);
+            this.OverviewTable.Name = "OverviewTable";
+            this.OverviewTable.Size = new System.Drawing.Size(725, 448);
+            this.OverviewTable.TabIndex = 0;
             // 
             // itemSelectAll
             // 
@@ -285,6 +419,7 @@
             // 
             // tabPage2
             // 
+            this.tabPage2.Controls.Add(this.GroupView);
             this.tabPage2.Location = new System.Drawing.Point(4, 22);
             this.tabPage2.Name = "tabPage2";
             this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
@@ -292,6 +427,15 @@
             this.tabPage2.TabIndex = 1;
             this.tabPage2.Text = "Groups";
             this.tabPage2.UseVisualStyleBackColor = true;
+            this.tabPage2.Enter += new System.EventHandler(this.tabPage2_Open);
+            // 
+            // GroupView
+            // 
+            this.GroupView.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.GroupView.Location = new System.Drawing.Point(3, 3);
+            this.GroupView.Name = "GroupView";
+            this.GroupView.Size = new System.Drawing.Size(144, 478);
+            this.GroupView.TabIndex = 0;
             // 
             // splitContainer1
             // 
@@ -305,7 +449,7 @@
             // 
             // splitContainer1.Panel2
             // 
-            this.splitContainer1.Panel2.Controls.Add(this.Tab);
+            this.splitContainer1.Panel2.Controls.Add(this.TabControl);
             this.splitContainer1.Size = new System.Drawing.Size(901, 510);
             this.splitContainer1.SplitterDistance = 158;
             this.splitContainer1.TabIndex = 3;
@@ -390,7 +534,7 @@
             this.Text = "EvE Build";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.MainWindow_Close);
             this.Shown += new System.EventHandler(this.MainWindow_Load);
-            this.Tab.ResumeLayout(false);
+            this.TabControl.ResumeLayout(false);
             this.TabManufacture.ResumeLayout(false);
             this.splitContainer2.Panel1.ResumeLayout(false);
             this.splitContainer2.Panel1.PerformLayout();
@@ -401,6 +545,15 @@
             ((System.ComponentModel.ISupportInitialize)(this.ProfitView)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.MESlider)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.ManufacturingTable)).EndInit();
+            this.Overview.ResumeLayout(false);
+            this.splitContainer5.Panel1.ResumeLayout(false);
+            this.splitContainer5.Panel1.PerformLayout();
+            this.splitContainer5.Panel2.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.splitContainer5)).EndInit();
+            this.splitContainer5.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.OverviewTE)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.OverviewME)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.OverviewTable)).EndInit();
             this.ItemTabs.ResumeLayout(false);
             this.tabPage1.ResumeLayout(false);
             this.splitContainer3.Panel1.ResumeLayout(false);
@@ -408,6 +561,7 @@
             this.splitContainer3.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer3)).EndInit();
             this.splitContainer3.ResumeLayout(false);
+            this.tabPage2.ResumeLayout(false);
             this.splitContainer1.Panel1.ResumeLayout(false);
             this.splitContainer1.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).EndInit();
@@ -428,7 +582,7 @@
 
         #endregion
 
-        private System.Windows.Forms.TabControl Tab;
+        private System.Windows.Forms.TabControl TabControl;
         private System.Windows.Forms.TabPage TabManufacture;
         private System.Windows.Forms.TabControl ItemTabs;
         private System.Windows.Forms.TabPage tabPage1;
@@ -454,6 +608,17 @@
         private System.Windows.Forms.ToolStripStatusLabel ToolProgLbl;
         private System.Windows.Forms.SplitContainer splitContainer4;
         public System.Windows.Forms.ToolStripStatusLabel ToolError;
+        private System.Windows.Forms.TabPage Overview;
+        private System.Windows.Forms.SplitContainer splitContainer5;
+        private System.Windows.Forms.NumericUpDown OverviewME;
+        private System.Windows.Forms.DataGridView OverviewTable;
+        private System.Windows.Forms.NumericUpDown OverviewTE;
+        private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.Button OverviewStart;
+        private System.Windows.Forms.CheckBox OverviewFaction;
+        private System.Windows.Forms.TreeView GroupView;
+        private System.Windows.Forms.CheckBox sellorBuyCheck;
     }
 }
 

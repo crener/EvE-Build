@@ -194,7 +194,7 @@ namespace EvE_Build
                                 var prod = (YamlSequenceNode)manufacturing.Children[man.Key];
                                 foreach (YamlMappingNode thing in prod)
                                 {
-                                    prodTime = Int32.Parse((thing.Children[new YamlScalarNode("quantity")]).ToString());
+                                    prodQty = Int32.Parse((thing.Children[new YamlScalarNode("quantity")]).ToString());
                                     itemID = Int32.Parse((thing.Children[new YamlScalarNode("typeID")]).ToString());
                                     ++i;
                                 }

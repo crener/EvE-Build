@@ -87,32 +87,67 @@ namespace EvE_Build
 
         private void Station1ID_TextChanged(object sender, EventArgs e)
         {
-            stationIds[0] = Int32.Parse(Station1ID.Text.ToString());
-            save();
+            try
+            {
+                stationIds[0] = Int32.Parse(Station1ID.Text.ToString());
+                save();
+            }
+            catch (Exception)
+            {
+                Station1ID.Text = Station1ID.Text.ToString().Remove(Station1ID.Text.ToString().Length - 1);
+            }
         }
 
         private void Station2ID_TextChanged(object sender, EventArgs e)
         {
-            stationIds[1] = Int32.Parse(Station2ID.Text.ToString());
-            save();
+            try
+            {
+                stationIds[1] = Int32.Parse(Station2ID.Text.ToString());
+                save();
+            }
+            catch (Exception)
+            {
+
+            }
         }
 
         private void Station3ID_TextChanged(object sender, EventArgs e)
         {
-            stationIds[2] = Int32.Parse(Station3ID.Text.ToString());
-            save();
+            try
+            {
+                stationIds[2] = Int32.Parse(Station3ID.Text.ToString());
+                save();
+            }
+            catch (Exception)
+            {
+
+            }
         }
 
         private void Station4ID_TextChanged(object sender, EventArgs e)
         {
-            stationIds[3] = Int32.Parse(Station4ID.Text.ToString());
-            save();
+            try
+            {
+                stationIds[3] = Int32.Parse(Station4ID.Text.ToString());
+                save();
+            }
+            catch (Exception)
+            {
+
+            }
         }
 
         private void Station5ID_TextChanged(object sender, EventArgs e)
         {
-            stationIds[4] = Int32.Parse(Station5ID.Text.ToString());
-            save();
+            try
+            {
+                stationIds[4] = Int32.Parse(Station5ID.Text.ToString());
+                save();
+            }
+            catch (Exception)
+            {
+
+            }
         }
 
         private void updateStartup_CheckedChanged(object sender, EventArgs e)
@@ -123,10 +158,10 @@ namespace EvE_Build
 
         private void UpdateInvervalSelect_ValueChanged(object sender, EventArgs e)
         {
-            updateInterval = Convert.ToInt32( UpdateInvervalSelect.Value);
+            updateInterval = Convert.ToInt32(UpdateInvervalSelect.Value);
             save();
         }
-        
+
         private void save()
         {
             //start generating the default settings for a new file
@@ -136,7 +171,7 @@ namespace EvE_Build
 
             for (int i = 0; i < stationNames.Length; ++i)
             {
-                newSettings.WriteLine(stationNames[i] + "," + stationIds[i]); 
+                newSettings.WriteLine(stationNames[i] + "," + stationIds[i]);
             }
 
             newSettings.WriteLine("UpdateStart: " + updateOnStartup.ToString());
