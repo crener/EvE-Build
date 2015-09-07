@@ -10,6 +10,7 @@ namespace EvE_Build
 
         public YAML()
         {
+            #region blacklistData
             blacklist[0] = 3927;
             blacklist[1] = 4364;
             blacklist[2] = 4389;
@@ -90,24 +91,32 @@ namespace EvE_Build
             blacklist[77] = 3927;
             blacklist[78] = 23736;
             blacklist[79] = 935;
-
+            #endregion
         }
         public Item[] ImportData(string blueprintsFile, string nameFile)
         {
-            Item[] Items = new Item[YdnItemSetup(blueprintsFile)];
+            //get input file
+            StreamReader file = new StreamReader(blueprintsFile);
+            YamlStream blue = new YamlStream();
+            blue.Load(file);
+            file.Close();
 
-            Items = YdnItemImport(blueprintsFile, ref Items);
-            YdnSetName(nameFile, "en", ref Items);
+            //get input file
+            file = new StreamReader(nameFile);
+            YamlStream name = new YamlStream();
+            name.Load(file);
+            file.Close();
+
+            Item[] Items = new Item[YdnItemSetup(blue)];
+            Items = YdnItemImport(blue, ref Items);
+
+            YdnSetName(name, "en", ref Items);
             return Items;
         }
-        int YdnItemSetup(string fileLocation)
+        int YdnItemSetup(YamlStream fileLocation)
         {
             int itemCount = 0;
-            StreamReader file = new StreamReader(fileLocation);
-            YamlStream yaml = new YamlStream();
-            yaml.Load(file);
-
-            var map = (YamlMappingNode)yaml.Documents[0].RootNode;
+            var map = (YamlMappingNode)fileLocation.Documents[0].RootNode;
             foreach (var entry in map.Children)
             {
 
@@ -117,15 +126,11 @@ namespace EvE_Build
             }
             return itemCount - (blacklist.Length - 1);
         }
-        Item[] YdnItemImport(string fileLocation, ref Item[] items)
+        Item[] YdnItemImport(YamlStream fileLocation, ref Item[] items)
         {
-            //get input file
-            StreamReader file = new StreamReader(fileLocation);
-            YamlStream yaml = new YamlStream();
-            yaml.Load(file);
-
             int itemCount = 0;
-            var map = (YamlMappingNode)yaml.Documents[0].RootNode;
+            //var map = (YamlMappingNode)yaml.Documents[0].RootNode;
+            var map = (YamlMappingNode)fileLocation.Documents[0].RootNode;
             foreach (var entry in map.Children)
             {
                 //create all the values that an item needs
@@ -263,6 +268,7 @@ namespace EvE_Build
                 potentialItem.setCopyTime(copyTime);
                 potentialItem.setCopySkills(copyskills);
                 potentialItem.setCopyMats(copyMats);
+                potentialItem.setProdLimit(prodLmt);
 
                 if (QualityControl(potentialItem))
                 {
@@ -271,7 +277,7 @@ namespace EvE_Build
                 }
             }
             itemCount = 0;
-            file.Close();
+            //file.Close();
 
             //Remove Nulls
             int total = 0;
@@ -294,15 +300,11 @@ namespace EvE_Build
             }
             return output;
         }
-        void YdnSetName(string fileLocation, string language, ref Item[] items)
+        void YdnSetName(YamlStream fileLocation, string language, ref Item[] items)
         {
-            StreamReader file = new StreamReader(fileLocation);
-            YamlStream yaml = new YamlStream();
-            yaml.Load(file);
-
             int itemID, itemPosition = 0;
             bool found = false;
-            var map = (YamlMappingNode)yaml.Documents[0].RootNode;
+            var map = (YamlMappingNode)fileLocation.Documents[0].RootNode;
             //figure out if there is an item for the current entry
             foreach (var entry in map.Children)
             {
@@ -343,7 +345,6 @@ namespace EvE_Build
         }
         public string[] YdnNameFromID(string fileLocation, int[] type, string language)
         {
-
             int[] typeId = type;
             string[] name = new string[typeId.Length];
             int r = 0;
@@ -398,7 +399,7 @@ namespace EvE_Build
 
             return name;
         }
-        public int[] YdnMatType(Item[] items)
+        public int[] YdnMatTypeint(Item[] items)
         {
             int[] typeId = new int[items.Length - 1];
             int r = 0;
@@ -411,7 +412,7 @@ namespace EvE_Build
                     //find valid material
                     if (materials[i, 1] != 0)
                     {
-                        //check if the materials has already been listed
+                        //check if the material has already been listed
                         bool found = false;
                         foreach (var type in typeId)
                         {
@@ -449,6 +450,66 @@ namespace EvE_Build
                 temp[i] = typeId[i];
             }
             typeId = new int[r];
+            typeId = temp;
+
+            return typeId;
+        }
+        public Material[] YdnMatTypeMat(Item[] items)
+        {
+            Material[] typeId = new Material[items.Length - 1];
+            for (int i = 0; i < items.Length - 1; ++i)
+            {
+                typeId[i] = new Material();
+            }
+            int r = 0;
+
+            foreach (var item in items)
+            {
+                Int64[,] materials = item.getProdMats();
+                for (int i = 0; i < (materials.Length / 2) - 1; ++i)
+                {
+                    //find valid material
+                    if (materials[i, 1] != 0)
+                    {
+                        //check if the material has already been listed
+                        bool found = false;
+                        for(int j = 0; j < typeId.Length; ++j)
+                        {
+                            if (materials[i, 1] == typeId[j].ID)
+                            {
+                                //item already exists
+                                found = true;
+                                break;
+                            }
+                        }
+
+                        //check the material isn't an item
+                        foreach (var thing in items)
+                        {
+                            if (thing.getTypeID() == materials[i, 1])
+                            {
+                                found = true;
+                                break;
+                            }
+                        }
+
+                        //add item to the material list
+                        if (found == false)
+                        {
+                            typeId[r].ID = Convert.ToInt32(materials[i, 1]);
+                            ++r;
+                        }
+                    }
+                }
+            }
+
+            //remove null values
+            Material[] temp = new Material[r];
+            for (int i = 0; i < r; ++i)
+            {
+                temp[i] = typeId[i];
+            }
+            typeId = new Material[r];
             typeId = temp;
 
             return typeId;
@@ -655,7 +716,7 @@ namespace EvE_Build
         }
         private bool QualityControl(Item thing)
         {
-            //ensure it has materials
+            //ensure the item has materials
             if (thing.getProdMats()[0, 0] == 0 && thing.getProdMats()[0, 1] == 0)
             {
                 return false;
@@ -673,6 +734,65 @@ namespace EvE_Build
                 }
             }
             return false;
+        }
+        public void extractMaterialNames(ref Material[] mat, string fileLocation, string language){
+
+            int[] typeId = new int[mat.Length - 1];
+            for (int i = 0; i < mat.Length - 1; ++i )
+            {
+                typeId[i] = mat[i].ID;
+            }
+
+            string[] name = new string[typeId.Length];
+            int r = 0;
+
+            StreamReader file = new StreamReader(fileLocation);
+            YamlStream yaml = new YamlStream();
+            yaml.Load(file);
+
+            int itemID, itemPosition = 0;
+            bool found = false;
+            var map = (YamlMappingNode)yaml.Documents[0].RootNode;
+            //figure out if there is an item for the current entry
+            foreach (var entry in map.Children)
+            {
+                itemID = Int32.Parse((entry.Key).ToString());
+                for (int i = 0; i < typeId.Length && found == false; ++i)
+                {
+                    if (typeId[i] == itemID)
+                    {
+                        //item has been located 
+                        found = true;
+                        itemPosition = i;
+                    }
+                }
+                if (found == false)
+                {
+                    //item couldn't be found do move onto the next item
+                    continue;
+                }
+
+                //time to get the name value of the item
+                var item = (YamlMappingNode)map.Children[entry.Key];
+                var nameNode = (YamlMappingNode)item.Children[(new YamlScalarNode("name"))];
+                string itemName = "";
+
+                foreach (var langName in nameNode)
+                {
+                    if ((langName.Key).ToString() == language)
+                    {
+                        itemName = (langName.Value).ToString();
+                        break;
+                    }
+                }
+
+                //set the item name
+                mat[itemPosition].name = itemName;
+                ++r;
+
+                //reset
+                found = false;
+            }
         }
     }
 }

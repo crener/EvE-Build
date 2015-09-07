@@ -16,13 +16,12 @@ namespace EvE_Build
     public partial class MainWindow : Form
     {
         Item[] items;
-        Thread eveCentralBot;
+        Thread eveCentralBot,
+            littleMinion;
 
-        int[] prodMatIds,
-            skills;
-        Int64[, ,] prodMatPrices;
-        string[] prodMatNames,
-            skillNames;
+        Material[] prodMats;
+        int[]  skills;
+        string[]    skillNames;
 
         List<string> listItems;
 
@@ -37,7 +36,6 @@ namespace EvE_Build
         public MainWindow()
         {
             InitializeComponent();
-
             Settings();
         }
 
@@ -58,40 +56,62 @@ namespace EvE_Build
         
         private void populateItemList()
         {
-            //create and populate items for the itemselector
-            YAML importer = new YAML();
-            items = importer.ImportData("StaticData/blueprints.Yaml", "StaticData/typeIDs.yaml");
-
-            List<string> data = new List<string>();
-            string[] tmpStorage = new string[items.Length];
-            int i = 0;
-            foreach (var item in items)
+            try
             {
-                if (item.getName() != "" && checkAlphanumeric(item.getName()))
+                //create and populate items for the itemselector
+                YAML importer = new YAML();
+                items = importer.ImportData("StaticData/blueprints.Yaml", "StaticData/typeIDs.yaml");
+
+                List<string> data = new List<string>();
+                string[] tmpStorage = new string[items.Length];
+                int i = 0;
+                foreach (var item in items)
                 {
-                    tmpStorage[i] = item.getName();
-                    ++i;
+                    if (item.getName() != "" && checkAlphanumeric(item.getName()))
+                    {
+                        tmpStorage[i] = item.getName();
+                        ++i;
+                    }
+                }
+
+                //remove null and sort
+                Array.Sort(tmpStorage);
+                for (int j = 0; tmpStorage.Length > j; ++j)
+                {
+                    if (tmpStorage[j] != null)
+                    {
+                        data.Add(tmpStorage[j]);
+                    }
+                }
+                listItems = data;
+
+                prodMats = importer.YdnMatTypeMat(items);
+                importer.extractMaterialNames(ref prodMats, "StaticData/typeIDs.yaml", "en");
+                
+                skills = importer.YdnGetAllSkills(items);
+                skillNames = importer.YdnNameFromID("StaticData/typeIDs.yaml", skills, "en");
+
+                if (itemSelectAll.InvokeRequired)
+                {
+                    itemSelectAll.Invoke(new MethodInvoker(delegate
+                    {
+                        itemSelectAll.DataSource = data;
+                    }));
+                }
+                else
+                {
+                    itemSelectAll.DataSource = data;
                 }
             }
-
-            //remove null and sort
-            Array.Sort(tmpStorage);
-            for (int j = 0; tmpStorage.Length > j; ++j)
+            catch (ThreadAbortException)
             {
-                if (tmpStorage[j] != null)
-                {
-                    data.Add(tmpStorage[j]);
-                }
+                littleMinion.Abort();
             }
-            listItems = data;
 
-            prodMatIds = importer.YdnMatType(items);
-            prodMatNames = importer.YdnNameFromID("StaticData/typeIDs.yaml", prodMatIds, "en");
-            prodMatPrices = new Int64[5, prodMatIds.Length, 2];
-            skills = importer.YdnGetAllSkills(items);
-            skillNames = importer.YdnNameFromID("StaticData/typeIDs.yaml", skills, "en");
-
-            itemSelectAll.DataSource = data;
+            //Start eve central thread for grabbing eve data periodialy
+            eveCentralBot = new Thread(EveThread);
+            eveCentralBot.Name = "eveCentralBot";
+            eveCentralBot.Start();
         }
 
         void Settings()
@@ -173,266 +193,272 @@ namespace EvE_Build
         void EveThread()
         {
             WebInterface eveBotInterface = new WebInterface();
-            try
+            int[] tempID = new int[prodMats.Length - 1];
+            for (int i = 0; i < prodMats.Length - 1; ++i)
             {
-                int stationCount = 0;
-                float progress = 0.0f;
-                foreach (var station in stationIds)
+                tempID[i] = prodMats[i].ID; 
+            }
+
+                try
                 {
-                    if (station != 0)
+                    int stationCount = 0;
+                    float progress = 0.0f;
+                    foreach (var station in stationIds)
                     {
-                        ++stationCount;
-                    }
-                }
-
-                //sleep for the refresh time if the user doesn't want to load data on startup
-                if (updateOnStartup == false)
-                {
-                    if (updateInterval > 1)
-                    {
-                        ToolProgLbl.Text = "Update on start up disabled, waiting " + updateInterval + " min";
-                    }
-                    else
-                    {
-                        ToolProgLbl.Text = "Update on start up disabled, waiting " + updateInterval + " mins";
-                    }
-                    ToolError.Text = "";
-                    Thread.Sleep(updateInterval * 60000);
-                }
-
-                while (true)
-                {
-                    System.Diagnostics.Debug.WriteLine(DateTime.Now.ToString("HH:mm:ss tt")
-                        + " Update cycle started");
-
-                    ToolError.Text = "";
-                    ToolProgLbl.Text = "Updating Material Data";
-                    setProgress((int)progress);
-                    int loadChuck = 50;
-                    int division = (items.Length - 1) / loadChuck;
-
-                    //update station data
-                    for (int l = 0; l < 5 && stationIds[l] != 0; ++l)
-                    {
-                        int upto = 0;
-                        int[] search = new int[50];
-                        string data = "";
-
-                        if (l != 0)
+                        if (station != 0)
                         {
-                            progress = (l * 100.0f) / stationCount;
+                            ++stationCount;
+                        }
+                    }
+
+                    //sleep for the refresh time if the user doesn't want to load data on startup
+                    if (updateOnStartup == false)
+                    {
+                        if (updateInterval > 1)
+                        {
+                            ToolProgLbl.Text = "Update on start up disabled, waiting " + updateInterval + " min";
                         }
                         else
                         {
-                            progress = 0;
+                            ToolProgLbl.Text = "Update on start up disabled, waiting " + updateInterval + " mins";
                         }
-                        setProgress((int)progress);
-
-                        while (upto != prodMatIds.Length - 1)
-                        {
-                            progress += (100.0f / stationCount) / division;
-                            setProgress((int)progress);
-
-                            for (int i = 0; i <= 49 && upto != prodMatIds.Length - 1; ++i)
-                            {
-                                search[i] = prodMatIds[upto];
-                                ++upto;
-                            }
-
-                            if (data != "")
-                            {
-                                string temp = "";
-                                try
-                                {
-                                    temp = eveBotInterface.getWebData(stationIds[l], search);
-                                }
-                                catch (WebException)
-                                {
-                                    ToolError.Text = "WebError, some items will not have updated information";
-                                }
-
-                                if (temp != "")
-                                {
-                                    data = data.Remove(data.Length - 29);
-                                    temp = temp.Remove(0, 106);
-                                    data = string.Concat(data, temp);
-                                }
-                            }
-                            else
-                            {
-                                try
-                                {
-                                    data = eveBotInterface.getWebData(stationIds[l], search);
-                                }
-                                catch (WebException)
-                                {
-                                    ToolError.Text = "WebError, some items will not have updated information";
-                                }
-                            }
-
-                            search = new int[50];
-                        }
-                        //check that there is data returned
-                        Int64[,] dataCheck = eveBotInterface.extractPrice(data, prodMatIds);
-                        Random ran = new Random();
-                        int strike = 0,
-                            first,
-                            second;
-                        for (int i = 0; i <= 5; ++i)
-                        {
-                            first = ran.Next((dataCheck.Length / 2) - 1);
-                            second = ran.Next(2);
-                            if (dataCheck[first, second] == 0)
-                            {
-                                ++strike;
-                            }
-                        }
-
-                        //there are too many 0 values so don't save the imported data for calulation ussage
-                        if (strike < 3)
-                        {
-                            //place data into the correct array
-                            for (int i = 0; i < upto; ++i)
-                            {
-                                //item layer
-                                for (int m = 0; m < 2; ++m)
-                                {
-                                    prodMatPrices[l, i, m] = dataCheck[i, m];
-                                }
-                            }
-                        }
+                        ToolError.Text = "";
+                        Thread.Sleep(updateInterval * 60000);
                     }
 
-                    //update item data
-                    System.Diagnostics.Debug.WriteLine(DateTime.Now.ToString("HH:mm:ss tt")
-                        + " Starting Item Update");
-                    ToolProgLbl.Text = "Updating Item Data";
-                    progress = 0;
-                    setProgress((int)progress);
-
-                    for (int l = 0; l < 5 && stationIds[l] != 0; ++l)
+                    while (true)
                     {
-                        int upto = 0;
-                        int[] search = new int[50];
-                        string data = "";
-                        loadChuck = 50;
+                        System.Diagnostics.Debug.WriteLine(DateTime.Now.ToString("HH:mm:ss tt")
+                            + " Update cycle started");
 
-                        if (l != 0)
-                        {
-                            progress = (l * 100.0f) / stationCount;
-                        }
-                        else
-                        {
-                            progress = 0;
-                        }
+                        ToolError.Text = "";
+                        ToolProgLbl.Text = "Updating Material Data";
                         setProgress((int)progress);
-                        division = (items.Length - 1) / loadChuck;
+                        int loadChuck = 50;
+                        int division = (items.Length - 1) / loadChuck;
 
-                        while (upto != items.Length - 1)
+                        //update station data
+                        for (int l = 0; l < 5 && stationIds[l] != 0; ++l)
                         {
-                            progress += (100.0f / stationCount) / division;
-                            setProgress((int)progress);
+                            int upto = 0;
+                            int[] search = new int[50];
+                            string data = "";
 
-                            for (int i = 0; i <= loadChuck - 1 && upto != items.Length - 1; ++i)
+                            if (l != 0)
                             {
-                                search[i] = items[upto].getTypeID();
-                                ++upto;
-                            }
-
-                            if (data != "")
-                            {
-                                string temp = "";
-                                try
-                                {
-                                    temp = eveBotInterface.getWebData(stationIds[l], search);
-                                }
-                                catch (WebException)
-                                {
-                                    ToolError.Text = "WebError, some items will not have updated information";
-                                }
-
-
-                                if (temp != "")
-                                {
-                                    data = data.Remove(data.Length - 29);
-                                    temp = temp.Remove(0, 106);
-                                    data = string.Concat(data, temp);
-                                }
+                                progress = (l * 100.0f) / stationCount;
                             }
                             else
                             {
-                                try
-                                {
-                                data = eveBotInterface.getWebData(stationIds[l], search);
-                                }
-                                catch (WebException)
-                                {
-                                    ToolError.Text = "WebError, some items will not have updated information";
-                                }
+                                progress = 0;
                             }
+                            setProgress((int)progress);
 
-
-                            search = new int[loadChuck];
-                        }
-                        //check that there is data returned
-
-                        int[] itemIDCollection = new int[items.Length - 1];
-                        for (int i = 0; i < itemIDCollection.Length; ++i)
-                        {
-                            itemIDCollection[i] = items[i].getTypeID();
-                        }
-
-                        Int64[,] dataCheck = eveBotInterface.extractPrice(data, itemIDCollection);
-                        Random ran = new Random();
-                        int strike = 0,
-                            first,
-                            second;
-                        for (int i = 0; i < 20; ++i)
-                        {
-                            first = ran.Next((dataCheck.Length / 2) - 1);
-                            second = ran.Next(2);
-                            if (dataCheck[first, second] == 0)
+                            while (upto != prodMats.Length - 1)
                             {
-                                ++strike;
-                            }
-                        }
+                                progress += (100.0f / stationCount) / division;
+                                setProgress((int)progress);
 
-                        //there are too many 0 values so don't save the imported data for calulation ussage
-                        if (strike < 20)
-                        {
-                            //place data into the correct array
-                            for (int i = 0; i < upto; ++i)
-                            {
-                                //item layer
-                                for (int m = 0; m < 2; ++m)
+                                for (int i = 0; i <= 49 && upto != prodMats.Length - 1; ++i)
                                 {
-                                    if (m == 0)
+                                    search[i] = prodMats[upto].ID;
+                                    ++upto;
+                                }
+
+                                if (data != "")
+                                {
+                                    string temp = "";
+                                    try
                                     {
-                                        items[i].setBuyPrice(l, dataCheck[i, m]);
+                                        temp = eveBotInterface.getWebData(stationIds[l], search);
                                     }
-                                    else if(m == 1)
+                                    catch (WebException)
                                     {
-                                        items[i].setSellPrice(l, dataCheck[i, m]);
+                                        ToolError.Text = "WebError, some items will not have updated information";
                                     }
-                                    //prodMatPrices[l, i, m] = dataCheck[i, m];
+
+                                    if (temp != "")
+                                    {
+                                        data = data.Remove(data.Length - 29);
+                                        temp = temp.Remove(0, 106);
+                                        data = string.Concat(data, temp);
+                                    }
+                                }
+                                else
+                                {
+                                    try
+                                    {
+                                        data = eveBotInterface.getWebData(stationIds[l], search);
+                                    }
+                                    catch (WebException)
+                                    {
+                                        ToolError.Text = "WebError, some items will not have updated information";
+                                    }
+                                }
+
+                                search = new int[50];
+                            }
+                            //check that there is data returned
+                            Int64[,] dataCheck = eveBotInterface.extractPrice(data, tempID);
+                            Random ran = new Random();
+                            int strike = 0,
+                                first,
+                                second;
+                            for (int i = 0; i <= 5; ++i)
+                            {
+                                first = ran.Next((dataCheck.Length / 2) - 1);
+                                second = ran.Next(2);
+                                if (dataCheck[first, second] == 0)
+                                {
+                                    ++strike;
+                                }
+                            }
+
+                            //there are too many 0 values so don't save the imported data for calulation ussage
+                            if (strike < 3)
+                            {
+                                //place data into the correct array
+                                for (int i = 0; i < upto; ++i)
+                                {
+                                    //item layer
+                                    for (int m = 0; m < 2; ++m)
+                                    {
+                                        //prodMatPrices[l, i, m] = dataCheck[i, m];
+                                        prodMats[i].price[l, m] = dataCheck[i, m];
+                                    }
                                 }
                             }
                         }
 
+                        //update item data
+                        System.Diagnostics.Debug.WriteLine(DateTime.Now.ToString("HH:mm:ss tt")
+                            + " Starting Item Update");
+                        ToolProgLbl.Text = "Updating Item Data";
+                        progress = 0;
+                        setProgress((int)progress);
 
+                        for (int l = 0; l < 5 && stationIds[l] != 0; ++l)
+                        {
+                            int upto = 0;
+                            int[] search = new int[50];
+                            string data = "";
+                            loadChuck = 50;
+
+                            if (l != 0)
+                            {
+                                progress = (l * 100.0f) / stationCount;
+                            }
+                            else
+                            {
+                                progress = 0;
+                            }
+                            setProgress((int)progress);
+                            division = (items.Length - 1) / loadChuck;
+
+                            while (upto != items.Length - 1)
+                            {
+                                progress += (100.0f / stationCount) / division;
+                                setProgress((int)progress);
+
+                                for (int i = 0; i <= loadChuck - 1 && upto != items.Length - 1; ++i)
+                                {
+                                    search[i] = items[upto].getTypeID();
+                                    ++upto;
+                                }
+
+                                if (data != "")
+                                {
+                                    string temp = "";
+                                    try
+                                    {
+                                        temp = eveBotInterface.getWebData(stationIds[l], search);
+                                    }
+                                    catch (WebException)
+                                    {
+                                        ToolError.Text = "WebError, some items will not have updated information";
+                                    }
+
+
+                                    if (temp != "")
+                                    {
+                                        data = data.Remove(data.Length - 29);
+                                        temp = temp.Remove(0, 106);
+                                        data = string.Concat(data, temp);
+                                    }
+                                }
+                                else
+                                {
+                                    try
+                                    {
+                                        data = eveBotInterface.getWebData(stationIds[l], search);
+                                    }
+                                    catch (WebException)
+                                    {
+                                        ToolError.Text = "WebError, some items will not have updated information";
+                                    }
+                                }
+
+
+                                search = new int[loadChuck];
+                            }
+                            //check that there is data returned
+
+                            int[] itemIDCollection = new int[items.Length - 1];
+                            for (int i = 0; i < itemIDCollection.Length; ++i)
+                            {
+                                itemIDCollection[i] = items[i].getTypeID();
+                            }
+
+                            Int64[,] dataCheck = eveBotInterface.extractPrice(data, itemIDCollection);
+                            Random ran = new Random();
+                            int strike = 0,
+                                first,
+                                second;
+                            for (int i = 0; i < 20; ++i)
+                            {
+                                first = ran.Next((dataCheck.Length / 2) - 1);
+                                second = ran.Next(2);
+                                if (dataCheck[first, second] == 0)
+                                {
+                                    ++strike;
+                                }
+                            }
+
+                            //there are too many 0 values so don't save the imported data for calulation ussage
+                            if (strike < 20)
+                            {
+                                //place data into the correct array
+                                for (int i = 0; i < upto; ++i)
+                                {
+                                    //item layer
+                                    for (int m = 0; m < 2; ++m)
+                                    {
+                                        if (m == 0)
+                                        {
+                                            items[i].setBuyPrice(l, dataCheck[i, m]);
+                                        }
+                                        else if (m == 1)
+                                        {
+                                            items[i].setSellPrice(l, dataCheck[i, m]);
+                                        }
+                                    }
+                                }
+                            }
+
+
+                        }
+                        ToolProgLbl.Text = "Data Updated";
+                        setProgress(0);
+                        System.Diagnostics.Debug.WriteLine(DateTime.Now.ToString("HH:mm:ss tt")
+                            + " Update cycle completed");
+                        Thread.Sleep(updateInterval * 60000);
                     }
-                    ToolProgLbl.Text = "Data Updated";
-                    setProgress(0);
-                    System.Diagnostics.Debug.WriteLine(DateTime.Now.ToString("HH:mm:ss tt")
-                        + " Update cycle completed");
-                    Thread.Sleep(updateInterval * 60000);
                 }
-            }
-            catch (ThreadAbortException)
-            {
-                eveCentralBot.Abort();
-                // Thead was aborted
-            }
+                catch (ThreadAbortException)
+                {
+                    eveCentralBot.Abort();
+                    // Thead was aborted
+                }
         }
 
         private void setProgress(int value)
@@ -446,23 +472,29 @@ namespace EvE_Build
             }
         }
 
-        private void itemSelectAll_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            WorkOutData();
-        }
-
         private void WorkOutData()
         {
+            if (items == null || itemSelectAll.Items.Count == 0)
+            {
+                return;
+            }
+
+            int itemIndex = NametoItemIndex(itemSelectAll.SelectedItem.ToString());
+
             //update labels
-            MEL.Text = "TE Level: " + MESlider.Value;
+            MEL.Text = "ME Level: " + MESlider.Value;
             TEL.Text = "TE Level: " + TESlider.Value;
+
+            //update limit value
+            RunSelect.Maximum = items[itemIndex].getProdLmt();
+            maxRuns.Text = "Maximum runs: " + items[itemIndex].getProdLmt();
 
             //work out the material costs
             ItemProporties();
 
             //work out the profitability
             DisplayName.Text = itemSelectAll.SelectedItem.ToString();
-            DisplayType.Text = "ID" + (NametoItemIndex(itemSelectAll.SelectedItem.ToString())).ToString();
+            DisplayType.Text = "ID" + items[itemIndex].getTypeID().ToString();
             DisplayBType.Text = "B" + NametoBlueprintID(itemSelectAll.SelectedItem.ToString());
 
             Profit();
@@ -518,14 +550,15 @@ namespace EvE_Build
                     //item in productMats
                     string name = "";
                     bool found2 = false;
-                    for (int i = 0; i < prodMatNames.Length - 1 && found2 == false; ++i)
+                    for (int i = 0; i < prodMats.Length - 1 && found2 == false; ++i)
                     {
-                        if (prodMatIds[i] == value)
+                        if (prodMats[i].ID == value)
                         {
-                            name = prodMatNames[i];
+                            name = prodMats[i].name;
                             for (int k = 0; k < 5; ++k)
                             {
-                                stationPrice[k] += prodMatPrices[k, i, 1] * quantity;
+                                //stationPrice[k] += prodMatPrices[k, i, 1] * quantity;
+                                stationPrice[k] += prodMats[i].price[k,1] * quantity;
                             }
                             found2 = true;
                             break;
@@ -550,9 +583,13 @@ namespace EvE_Build
             }
             //populate the table
             string[] stationBuild = new string[5];
-            for (int i = 0; i < 5; ++i)
+            Int64 subPrice = 0,
+                subPrice2 = 0;
+            for (int i = 0; i < 5 && stationPrice[i] != 0; ++i)
             {
-                stationBuild[i] = format((stationPrice[i] / current.getProdQty()).ToString());
+                subPrice = stationPrice[i] / current.getProdQty();
+                subPrice2 = subPrice * Convert.ToInt64(RunSelect.Value);
+                stationBuild[i] = format(subPrice2.ToString());
             }
             for (int s = 0; s < 5; ++s)
             {
@@ -561,18 +598,21 @@ namespace EvE_Build
                     Int64 sellProfit = current.getSellPrice(s) - (stationPrice[s] / current.getProdQty()),
                         buyProfit = current.getBuyPrice(s) - (stationPrice[s] / current.getProdQty()),
                         iskHr = new Int64();
-                    float buildTime = ((current.getProdTime() / 60f) / 60f) * (float)(1 - (0.01 * TESlider.Value));
+                    float buildTime = ((current.getProdTime() / 60f) / 60f) * (float)(1 - (0.01 * TESlider.Value)),
+                        iskInv;
 
                     //profit baseed on buy or sell
                     if (sellorBuyCheck.Checked)
                     {
                         //profit based on buy
                         iskHr = (Int64)((buyProfit * current.getProdQty()) / buildTime);
+                        iskInv = ((buyProfit * 1.0f) / stationPrice[s]);
                     }
                     else
                     {
                         //profit based on sell
                         iskHr = (Int64)((sellProfit * current.getProdQty()) / buildTime);
+                        iskInv = ((sellProfit * 1.0f) / stationPrice[s]);
                     }
                     
 
@@ -581,10 +621,10 @@ namespace EvE_Build
                         table.Rows.Add(stationNames[s],
                             stationBuild[s],
                             format(current.getSellPrice(s).ToString()),
-                            format(sellProfit.ToString()),
-                            format(buyProfit.ToString()),
+                            format((sellProfit * Convert.ToInt32(RunSelect.Value)).ToString()),
+                            format((buyProfit * Convert.ToInt32(RunSelect.Value)).ToString()),
                             format(iskHr.ToString()),
-                            (sellProfit * 1.0f) / stationPrice[s]);
+                            iskInv);
                     }
                     else
                     {
@@ -592,8 +632,8 @@ namespace EvE_Build
                         table.Rows.Add(stationNames[s],
                             stationBuild[s],
                             format(current.getSellPrice(s).ToString()),
-                            format(sellProfit.ToString()),
-                            format(buyProfit.ToString()),
+                            format((sellProfit * Convert.ToInt32(RunSelect.Value)).ToString()),
+                            format((buyProfit * Convert.ToInt32(RunSelect.Value)).ToString()),
                             "0",
                             0.0f);
                     }
@@ -606,6 +646,11 @@ namespace EvE_Build
 
         private void ItemProporties()
         {
+            if (items == null || prodMats == null)
+            {
+                return;
+            }
+
             Item current = new Item(0, 0);
 
             //figure out what the type ID of the item is
@@ -642,7 +687,7 @@ namespace EvE_Build
 
                 if (second == false)
                 {
-                    quantity = CorrectRounding(value * (1 - (0.01f * MESlider.Value)));
+                    quantity = CorrectRounding(value * (1 - (0.01f * MESlider.Value))) * Convert.ToInt32(RunSelect.Value);
                     second = true;
                 }
                 else if (second == true)
@@ -650,11 +695,11 @@ namespace EvE_Build
                     //populate the next row
                     string name = "";
                     bool found2 = false;
-                    for (int i = 0; i < prodMatNames.Length - 1 && found2 == false; ++i)
+                    for (int i = 0; i < prodMats.Length - 1 && found2 == false; ++i)
                     {
-                        if (prodMatIds[i] == value)
+                        if (prodMats[i].ID == value)
                         {
-                            name = prodMatNames[i];
+                            name = prodMats[i].name;
                             table.Rows.Add(name, quantity, cost(i, 0, quantity),
                                 cost(i, 1, quantity), cost(i, 2, quantity),
                                 cost(i, 3, quantity), cost(i, 4, quantity));
@@ -669,7 +714,6 @@ namespace EvE_Build
                         {
                             if (items[i].getTypeID() == value)
                             {
-
                                 table.Rows.Add(items[i].getName(), quantity,
                                     format((getItemValue(items[i], 10, 0) * quantity).ToString()),
                                 format((getItemValue(items[i], 10, 1) * quantity).ToString()),
@@ -690,6 +734,11 @@ namespace EvE_Build
 
         private Int64 getItemValue(Item search, int ME, int stationIndex)
         {
+            if (search == null || prodMats == null)
+            {
+                return 0;
+            }
+
             Int64 cost = 0;
             for (int i = 0; i < search.getProdMats().Length / 2; ++i)
             {
@@ -700,12 +749,13 @@ namespace EvE_Build
 
 
                     bool found = false;
-                    for (int m = 0; m < prodMatIds.Length - 1 && found == false; ++m)
+                    for (int m = 0; m < prodMats.Length - 1 && found == false; ++m)
                     {
-                        if (prodMatIds[m] == id)
+                        if (prodMats[m].ID == id)
                         {
                             found = true;
-                            cost += prodMatPrices[stationIndex, m, 1] * qty;
+                            //cost += prodMatPrices[stationIndex, m, 1] * qty;
+                            cost += prodMats[m].price[stationIndex, 1] * qty;
                         }
                     }
 
@@ -745,58 +795,6 @@ namespace EvE_Build
             return removeDigit;
         }
 
-        private void searchBox_TextChanged(object sender, EventArgs e)
-        {
-            //if text is greater than 3 search for item which include those letters
-            if (!(searchBox.Text.Length >= 3))
-            {
-                itemSelectAll.DataSource = listItems;
-                return;
-            }
-
-            //start searching
-            List<string> searchResults = new List<string>();
-            string searchLow = "",
-                searchHigh = "";
-
-            if (searchBox.Text != null)
-            {
-                searchLow = searchBox.Text.First().ToString().ToLower() + String.Join("", searchBox.Text.Skip(1));
-                searchHigh = searchBox.Text.First().ToString().ToUpper() + String.Join("", searchBox.Text.Skip(1));
-
-            }
-            foreach (var item in items)
-            {
-                if (item.getName() != null && item.getName().IndexOf(searchLow) >= 0)
-                {
-                    searchResults.Add(item.getName());
-                }
-                else if (item.getName() != null && item.getName().IndexOf(searchHigh) >= 0)
-                {
-                    searchResults.Add(item.getName());
-                }
-            }
-
-            searchResults.Sort();
-            itemSelectAll.DataSource = searchResults;
-        }
-
-        private void MainWindow_Load(object sender, EventArgs e)
-        {
-            //start going though the yaml files to get data
-            populateItemList();
-
-            //Start eve central thread for grabbing eve data periodialy
-            eveCentralBot = new Thread(EveThread);
-            eveCentralBot.Name = "eveCentralBot";
-            eveCentralBot.Start();
-        }
-
-        private void MainWindow_Close(object sender, System.ComponentModel.CancelEventArgs e)
-        {
-            eveCentralBot.Abort();
-        }
-
         void setDefaultSettings()
         {
             //set the default values
@@ -817,18 +815,10 @@ namespace EvE_Build
             updateOnStartup = true;
         }
 
-        private void optionsToolStripMenuItem_Click(object sender, EventArgs e)
+        private string cost(int typeIdIndex, int stationNo, Int64 qty)
         {
-            Options optionsForm = new Options(stationNames, stationIds, updateOnStartup, updateInterval);
-            optionsForm.ShowDialog();
-
-            //presumably there were changes made, so reloadd the settings
-            Settings();
-        }
-
-        private string cost(int typeID, int stationNo, Int64 qty)
-        {
-            Int64 numValue = prodMatPrices[stationNo, typeID, 1] * qty;
+            //Int64 numValue = prodMatPrices[stationNo, typeID, 1] * qty;
+            Int64 numValue = prodMats[typeIdIndex].price[stationNo, 1] * qty;
             string output = (numValue).ToString();
             if (output == "0")
             {
@@ -885,13 +875,13 @@ namespace EvE_Build
             return output;
         }
 
-        private void MESlider_Scroll(object sender, EventArgs e)
-        {
-            WorkOutData();
-        }
-
         private int NametoItemIndex(string name)
         {
+            if (items == null)
+            {
+                return 0;
+            }
+
             bool found = false;
             for (int i = 0; found == false && i < items.Length; ++i)
             {
@@ -914,6 +904,99 @@ namespace EvE_Build
                 }
             }
             return "0";
+        }
+
+        private void SetupTreeView()
+        {
+            //populate the gruop tree view with items
+
+
+
+
+        }
+
+#region formStuff
+        private void itemSelectAll_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            RunSelect.Value = 1;
+            WorkOutData();
+        }
+
+        private void searchBox_TextChanged(object sender, EventArgs e)
+        {
+            //if text is greater than 3 search for item which include those letters
+            if (!(searchBox.Text.Length >= 3))
+            {
+                itemSelectAll.DataSource = listItems;
+                return;
+            }
+
+            if (items == null)
+            {
+                return;
+            }
+
+            RunSelect.Value = 1;
+
+            //start searching
+            List<string> searchResults = new List<string>();
+            string searchLow = "",
+                searchHigh = "";
+
+            if (searchBox.Text != null)
+            {
+                searchLow = searchBox.Text.First().ToString().ToLower() + String.Join("", searchBox.Text.Skip(1));
+                searchHigh = searchBox.Text.First().ToString().ToUpper() + String.Join("", searchBox.Text.Skip(1));
+            }
+            foreach (var item in items)
+            {
+                if (item.getName() != null && item.getName().IndexOf(searchLow) >= 0)
+                {
+                    searchResults.Add(item.getName());
+                }
+                else if (item.getName() != null && item.getName().IndexOf(searchHigh) >= 0)
+                {
+                    searchResults.Add(item.getName());
+                }
+            }
+
+            searchResults.Sort();
+            itemSelectAll.DataSource = searchResults;
+        }
+
+        private void MainWindow_Load(object sender, EventArgs e)
+        {
+            //start going though the yaml files to get data
+            littleMinion = new Thread(populateItemList);
+            littleMinion.Name = "LittleMinion - Populate item list";
+            littleMinion.Start();
+            //populateItemList();
+        }
+
+        private void MainWindow_Close(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            if (eveCentralBot != null && eveCentralBot.IsAlive)
+            {
+                eveCentralBot.Abort();
+            }
+            if (littleMinion != null && littleMinion.IsAlive)
+            {
+                littleMinion.Abort();
+            }
+        }
+
+        private void optionsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Options optionsForm = new Options(stationNames, stationIds, updateOnStartup, updateInterval);
+            optionsForm.ShowDialog();
+
+            //presumably there were changes made, so reloadd the settings
+            Settings();
+        }
+
+        private void MESlider_Scroll(object sender, EventArgs e)
+        {
+            WorkOutData();
         }
 
         private void TESlider_Scroll(object sender, EventArgs e)
@@ -1095,18 +1178,15 @@ namespace EvE_Build
             }
         }
 
-        private void SetupTreeView()
-        {
-
-
-
-
-
-        }
-
         private void sellorBuyCheck_CheckedChanged(object sender, EventArgs e)
         {
             WorkOutData();
         }
+
+        private void RunSelect_ValueChanged(object sender, EventArgs e)
+        {
+            WorkOutData();
+        }
+#endregion
     }
 }

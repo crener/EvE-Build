@@ -32,6 +32,11 @@
             this.TabControl = new System.Windows.Forms.TabControl();
             this.TabManufacture = new System.Windows.Forms.TabPage();
             this.splitContainer2 = new System.Windows.Forms.SplitContainer();
+            this.AddShoppingMaterials2 = new System.Windows.Forms.Button();
+            this.AddShoppingMaterials = new System.Windows.Forms.Button();
+            this.maxRuns = new System.Windows.Forms.Label();
+            this.label3 = new System.Windows.Forms.Label();
+            this.RunSelect = new System.Windows.Forms.NumericUpDown();
             this.sellorBuyCheck = new System.Windows.Forms.CheckBox();
             this.DisplayBType = new System.Windows.Forms.Label();
             this.TEL = new System.Windows.Forms.Label();
@@ -51,6 +56,12 @@
             this.label1 = new System.Windows.Forms.Label();
             this.OverviewME = new System.Windows.Forms.NumericUpDown();
             this.OverviewTable = new System.Windows.Forms.DataGridView();
+            this.ShopingTab = new System.Windows.Forms.TabPage();
+            this.splitContainer6 = new System.Windows.Forms.SplitContainer();
+            this.ClearCart = new System.Windows.Forms.Button();
+            this.label4 = new System.Windows.Forms.Label();
+            this.ExportCart = new System.Windows.Forms.Button();
+            this.ShoppingCart = new System.Windows.Forms.DataGridView();
             this.itemSelectAll = new System.Windows.Forms.ListBox();
             this.ItemTabs = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
@@ -72,6 +83,7 @@
             this.splitContainer2.Panel1.SuspendLayout();
             this.splitContainer2.Panel2.SuspendLayout();
             this.splitContainer2.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.RunSelect)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.TESlider)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.ProfitView)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.MESlider)).BeginInit();
@@ -84,6 +96,12 @@
             ((System.ComponentModel.ISupportInitialize)(this.OverviewTE)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.OverviewME)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.OverviewTable)).BeginInit();
+            this.ShopingTab.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.splitContainer6)).BeginInit();
+            this.splitContainer6.Panel1.SuspendLayout();
+            this.splitContainer6.Panel2.SuspendLayout();
+            this.splitContainer6.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.ShoppingCart)).BeginInit();
             this.ItemTabs.SuspendLayout();
             this.tabPage1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer3)).BeginInit();
@@ -107,6 +125,7 @@
             // 
             this.TabControl.Controls.Add(this.TabManufacture);
             this.TabControl.Controls.Add(this.Overview);
+            this.TabControl.Controls.Add(this.ShopingTab);
             this.TabControl.Dock = System.Windows.Forms.DockStyle.Fill;
             this.TabControl.Location = new System.Drawing.Point(0, 0);
             this.TabControl.Name = "TabControl";
@@ -134,6 +153,11 @@
             // 
             // splitContainer2.Panel1
             // 
+            this.splitContainer2.Panel1.Controls.Add(this.AddShoppingMaterials2);
+            this.splitContainer2.Panel1.Controls.Add(this.AddShoppingMaterials);
+            this.splitContainer2.Panel1.Controls.Add(this.maxRuns);
+            this.splitContainer2.Panel1.Controls.Add(this.label3);
+            this.splitContainer2.Panel1.Controls.Add(this.RunSelect);
             this.splitContainer2.Panel1.Controls.Add(this.sellorBuyCheck);
             this.splitContainer2.Panel1.Controls.Add(this.DisplayBType);
             this.splitContainer2.Panel1.Controls.Add(this.TEL);
@@ -150,6 +174,60 @@
             this.splitContainer2.Size = new System.Drawing.Size(725, 478);
             this.splitContainer2.SplitterDistance = 311;
             this.splitContainer2.TabIndex = 2;
+            // 
+            // AddShoppingMaterials2
+            // 
+            this.AddShoppingMaterials2.Location = new System.Drawing.Point(3, 140);
+            this.AddShoppingMaterials2.Name = "AddShoppingMaterials2";
+            this.AddShoppingMaterials2.Size = new System.Drawing.Size(164, 46);
+            this.AddShoppingMaterials2.TabIndex = 13;
+            this.AddShoppingMaterials2.Text = "Add materials of materials to shopping cart";
+            this.AddShoppingMaterials2.UseVisualStyleBackColor = true;
+            // 
+            // AddShoppingMaterials
+            // 
+            this.AddShoppingMaterials.Location = new System.Drawing.Point(3, 111);
+            this.AddShoppingMaterials.Name = "AddShoppingMaterials";
+            this.AddShoppingMaterials.Size = new System.Drawing.Size(164, 23);
+            this.AddShoppingMaterials.TabIndex = 12;
+            this.AddShoppingMaterials.Text = "Add materials to shopping cart";
+            this.AddShoppingMaterials.UseVisualStyleBackColor = true;
+            // 
+            // maxRuns
+            // 
+            this.maxRuns.AutoSize = true;
+            this.maxRuns.Location = new System.Drawing.Point(325, 62);
+            this.maxRuns.Name = "maxRuns";
+            this.maxRuns.Size = new System.Drawing.Size(77, 13);
+            this.maxRuns.TabIndex = 11;
+            this.maxRuns.Text = "Maximum runs:";
+            // 
+            // label3
+            // 
+            this.label3.AutoSize = true;
+            this.label3.Location = new System.Drawing.Point(265, 62);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(38, 13);
+            this.label3.TabIndex = 10;
+            this.label3.Text = "Run(s)";
+            // 
+            // RunSelect
+            // 
+            this.RunSelect.Location = new System.Drawing.Point(203, 60);
+            this.RunSelect.Minimum = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+            this.RunSelect.Name = "RunSelect";
+            this.RunSelect.Size = new System.Drawing.Size(56, 20);
+            this.RunSelect.TabIndex = 9;
+            this.RunSelect.Value = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+            this.RunSelect.ValueChanged += new System.EventHandler(this.RunSelect_ValueChanged);
             // 
             // sellorBuyCheck
             // 
@@ -227,9 +305,9 @@
             this.DisplayName.Font = new System.Drawing.Font("Microsoft Sans Serif", 16F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.DisplayName.Location = new System.Drawing.Point(3, 0);
             this.DisplayName.Name = "DisplayName";
-            this.DisplayName.Size = new System.Drawing.Size(91, 26);
+            this.DisplayName.Size = new System.Drawing.Size(255, 26);
             this.DisplayName.TabIndex = 1;
-            this.DisplayName.Text = "*name*";
+            this.DisplayName.Text = "Loading items from file";
             // 
             // MESlider
             // 
@@ -289,6 +367,8 @@
             // OverviewFaction
             // 
             this.OverviewFaction.AutoSize = true;
+            this.OverviewFaction.Checked = true;
+            this.OverviewFaction.CheckState = System.Windows.Forms.CheckState.Checked;
             this.OverviewFaction.Location = new System.Drawing.Point(256, 5);
             this.OverviewFaction.Name = "OverviewFaction";
             this.OverviewFaction.Size = new System.Drawing.Size(122, 17);
@@ -326,6 +406,11 @@
             this.OverviewTE.Name = "OverviewTE";
             this.OverviewTE.Size = new System.Drawing.Size(46, 20);
             this.OverviewTE.TabIndex = 2;
+            this.OverviewTE.Value = new decimal(new int[] {
+            20,
+            0,
+            0,
+            0});
             // 
             // label1
             // 
@@ -347,6 +432,11 @@
             this.OverviewME.Name = "OverviewME";
             this.OverviewME.Size = new System.Drawing.Size(46, 20);
             this.OverviewME.TabIndex = 2;
+            this.OverviewME.Value = new decimal(new int[] {
+            10,
+            0,
+            0,
+            0});
             // 
             // OverviewTable
             // 
@@ -356,6 +446,77 @@
             this.OverviewTable.Name = "OverviewTable";
             this.OverviewTable.Size = new System.Drawing.Size(725, 448);
             this.OverviewTable.TabIndex = 0;
+            // 
+            // ShopingTab
+            // 
+            this.ShopingTab.Controls.Add(this.splitContainer6);
+            this.ShopingTab.Location = new System.Drawing.Point(4, 22);
+            this.ShopingTab.Name = "ShopingTab";
+            this.ShopingTab.Padding = new System.Windows.Forms.Padding(3);
+            this.ShopingTab.Size = new System.Drawing.Size(731, 484);
+            this.ShopingTab.TabIndex = 2;
+            this.ShopingTab.Text = "Shoping Cart";
+            this.ShopingTab.UseVisualStyleBackColor = true;
+            // 
+            // splitContainer6
+            // 
+            this.splitContainer6.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.splitContainer6.Location = new System.Drawing.Point(3, 3);
+            this.splitContainer6.Name = "splitContainer6";
+            this.splitContainer6.Orientation = System.Windows.Forms.Orientation.Horizontal;
+            // 
+            // splitContainer6.Panel1
+            // 
+            this.splitContainer6.Panel1.Controls.Add(this.ClearCart);
+            this.splitContainer6.Panel1.Controls.Add(this.label4);
+            this.splitContainer6.Panel1.Controls.Add(this.ExportCart);
+            // 
+            // splitContainer6.Panel2
+            // 
+            this.splitContainer6.Panel2.Controls.Add(this.ShoppingCart);
+            this.splitContainer6.Size = new System.Drawing.Size(725, 478);
+            this.splitContainer6.SplitterDistance = 43;
+            this.splitContainer6.TabIndex = 0;
+            // 
+            // ClearCart
+            // 
+            this.ClearCart.Location = new System.Drawing.Point(92, 3);
+            this.ClearCart.Name = "ClearCart";
+            this.ClearCart.Size = new System.Drawing.Size(75, 23);
+            this.ClearCart.TabIndex = 2;
+            this.ClearCart.Text = "Empty Cart";
+            this.ClearCart.UseVisualStyleBackColor = true;
+            // 
+            // label4
+            // 
+            this.label4.AutoSize = true;
+            this.label4.Location = new System.Drawing.Point(3, 29);
+            this.label4.Name = "label4";
+            this.label4.Size = new System.Drawing.Size(584, 13);
+            this.label4.TabIndex = 1;
+            this.label4.Text = "Once you \'Export To EVE\' the contents of the cart will be copied to the clipboard" +
+    " so that you can import it in eve as a fitting";
+            // 
+            // ExportCart
+            // 
+            this.ExportCart.Location = new System.Drawing.Point(3, 3);
+            this.ExportCart.Name = "ExportCart";
+            this.ExportCart.Size = new System.Drawing.Size(83, 23);
+            this.ExportCart.TabIndex = 0;
+            this.ExportCart.Text = "Export To Eve";
+            this.ExportCart.UseVisualStyleBackColor = true;
+            // 
+            // ShoppingCart
+            // 
+            this.ShoppingCart.AllowUserToAddRows = false;
+            this.ShoppingCart.AllowUserToDeleteRows = false;
+            this.ShoppingCart.AllowUserToOrderColumns = true;
+            this.ShoppingCart.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.ShoppingCart.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.ShoppingCart.Location = new System.Drawing.Point(0, 0);
+            this.ShoppingCart.Name = "ShoppingCart";
+            this.ShoppingCart.Size = new System.Drawing.Size(725, 431);
+            this.ShoppingCart.TabIndex = 0;
             // 
             // itemSelectAll
             // 
@@ -491,16 +652,15 @@
             // ToolProgLbl
             // 
             this.ToolProgLbl.Name = "ToolProgLbl";
-            this.ToolProgLbl.Size = new System.Drawing.Size(118, 17);
-            this.ToolProgLbl.Text = "toolStripStatusLabel1";
+            this.ToolProgLbl.Size = new System.Drawing.Size(165, 17);
+            this.ToolProgLbl.Text = "Price fetcher thread not active";
             // 
             // ToolError
             // 
             this.ToolError.AccessibleRole = System.Windows.Forms.AccessibleRole.None;
             this.ToolError.ForeColor = System.Drawing.Color.Red;
             this.ToolError.Name = "ToolError";
-            this.ToolError.Size = new System.Drawing.Size(57, 17);
-            this.ToolError.Text = "Error Text";
+            this.ToolError.Size = new System.Drawing.Size(0, 17);
             this.ToolError.VisitedLinkColor = System.Drawing.Color.Red;
             // 
             // splitContainer4
@@ -541,6 +701,7 @@
             this.splitContainer2.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer2)).EndInit();
             this.splitContainer2.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.RunSelect)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.TESlider)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.ProfitView)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.MESlider)).EndInit();
@@ -554,6 +715,13 @@
             ((System.ComponentModel.ISupportInitialize)(this.OverviewTE)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.OverviewME)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.OverviewTable)).EndInit();
+            this.ShopingTab.ResumeLayout(false);
+            this.splitContainer6.Panel1.ResumeLayout(false);
+            this.splitContainer6.Panel1.PerformLayout();
+            this.splitContainer6.Panel2.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.splitContainer6)).EndInit();
+            this.splitContainer6.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.ShoppingCart)).EndInit();
             this.ItemTabs.ResumeLayout(false);
             this.tabPage1.ResumeLayout(false);
             this.splitContainer3.Panel1.ResumeLayout(false);
@@ -619,6 +787,17 @@
         private System.Windows.Forms.CheckBox OverviewFaction;
         private System.Windows.Forms.TreeView GroupView;
         private System.Windows.Forms.CheckBox sellorBuyCheck;
+        private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.NumericUpDown RunSelect;
+        private System.Windows.Forms.Label maxRuns;
+        private System.Windows.Forms.TabPage ShopingTab;
+        private System.Windows.Forms.SplitContainer splitContainer6;
+        private System.Windows.Forms.Button ClearCart;
+        private System.Windows.Forms.Label label4;
+        private System.Windows.Forms.Button ExportCart;
+        private System.Windows.Forms.DataGridView ShoppingCart;
+        private System.Windows.Forms.Button AddShoppingMaterials;
+        private System.Windows.Forms.Button AddShoppingMaterials2;
     }
 }
 

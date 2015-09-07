@@ -33,6 +33,13 @@ namespace EvE_Build
         Int64[] buyCost = new Int64[5],
             sellCost = new Int64[5];
 
+        //sorting data
+        int faction = 0,
+            groupID = 0,
+            marketGroup = 0,
+            volume = 0;
+
+
         public Item(int blueprintID,int typeID)
         {
             //all items MUST have a type ID to be created
@@ -45,7 +52,6 @@ namespace EvE_Build
             sellCost[station] = pricing[2];
             buyCost[station] = pricing[1];
         }
-
         public Int64 getSellPrice(int station) { return sellCost[station];}
         public Int64 getBuyPrice(int station) { return buyCost[station]; }
         public void setName(string name) { displayName = name; blueprintName = displayName + " Blueprint"; }
@@ -68,6 +74,7 @@ namespace EvE_Build
         public void setProdLimit(int limit) { prodLmt = limit; }
         public void setProdTime(int time) { productionTime = time; }
         public int getProdTime() { return productionTime; }
+        public int getProdLmt() { return prodLmt; }
         public void setProdQty(int qty) { productionQty = qty; }
         public void setCopyTime(int time) { copyTime = time; }
         public void setMEtime(int time) { MEtime = time; }
