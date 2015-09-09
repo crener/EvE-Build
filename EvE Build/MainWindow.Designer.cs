@@ -32,7 +32,10 @@
             this.TabControl = new System.Windows.Forms.TabControl();
             this.TabManufacture = new System.Windows.Forms.TabPage();
             this.splitContainer2 = new System.Windows.Forms.SplitContainer();
-            this.AddShoppingMaterials2 = new System.Windows.Forms.Button();
+            this.BpoCost = new System.Windows.Forms.Label();
+            this.label6 = new System.Windows.Forms.Label();
+            this.RunsToPay = new System.Windows.Forms.Label();
+            this.label5 = new System.Windows.Forms.Label();
             this.AddShoppingMaterials = new System.Windows.Forms.Button();
             this.maxRuns = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
@@ -153,7 +156,10 @@
             // 
             // splitContainer2.Panel1
             // 
-            this.splitContainer2.Panel1.Controls.Add(this.AddShoppingMaterials2);
+            this.splitContainer2.Panel1.Controls.Add(this.BpoCost);
+            this.splitContainer2.Panel1.Controls.Add(this.label6);
+            this.splitContainer2.Panel1.Controls.Add(this.RunsToPay);
+            this.splitContainer2.Panel1.Controls.Add(this.label5);
             this.splitContainer2.Panel1.Controls.Add(this.AddShoppingMaterials);
             this.splitContainer2.Panel1.Controls.Add(this.maxRuns);
             this.splitContainer2.Panel1.Controls.Add(this.label3);
@@ -175,14 +181,41 @@
             this.splitContainer2.SplitterDistance = 311;
             this.splitContainer2.TabIndex = 2;
             // 
-            // AddShoppingMaterials2
+            // BpoCost
             // 
-            this.AddShoppingMaterials2.Location = new System.Drawing.Point(3, 140);
-            this.AddShoppingMaterials2.Name = "AddShoppingMaterials2";
-            this.AddShoppingMaterials2.Size = new System.Drawing.Size(164, 46);
-            this.AddShoppingMaterials2.TabIndex = 13;
-            this.AddShoppingMaterials2.Text = "Add materials of materials to shopping cart";
-            this.AddShoppingMaterials2.UseVisualStyleBackColor = true;
+            this.BpoCost.AutoSize = true;
+            this.BpoCost.Location = new System.Drawing.Point(255, 83);
+            this.BpoCost.Name = "BpoCost";
+            this.BpoCost.Size = new System.Drawing.Size(13, 13);
+            this.BpoCost.TabIndex = 16;
+            this.BpoCost.Text = "0";
+            // 
+            // label6
+            // 
+            this.label6.AutoSize = true;
+            this.label6.Location = new System.Drawing.Point(203, 83);
+            this.label6.Name = "label6";
+            this.label6.Size = new System.Drawing.Size(58, 13);
+            this.label6.TabIndex = 15;
+            this.label6.Text = "BPO cost: ";
+            // 
+            // RunsToPay
+            // 
+            this.RunsToPay.AutoSize = true;
+            this.RunsToPay.Location = new System.Drawing.Point(346, 96);
+            this.RunsToPay.Name = "RunsToPay";
+            this.RunsToPay.Size = new System.Drawing.Size(13, 13);
+            this.RunsToPay.TabIndex = 14;
+            this.RunsToPay.Text = "0";
+            // 
+            // label5
+            // 
+            this.label5.AutoSize = true;
+            this.label5.Location = new System.Drawing.Point(203, 96);
+            this.label5.Name = "label5";
+            this.label5.Size = new System.Drawing.Size(146, 13);
+            this.label5.TabIndex = 13;
+            this.label5.Text = "Runs needed to pay for BPO:";
             // 
             // AddShoppingMaterials
             // 
@@ -192,6 +225,7 @@
             this.AddShoppingMaterials.TabIndex = 12;
             this.AddShoppingMaterials.Text = "Add materials to shopping cart";
             this.AddShoppingMaterials.UseVisualStyleBackColor = true;
+            this.AddShoppingMaterials.Click += new System.EventHandler(this.AddShoppingMaterials_Click);
             // 
             // maxRuns
             // 
@@ -326,6 +360,7 @@
             this.ManufacturingTable.Dock = System.Windows.Forms.DockStyle.Fill;
             this.ManufacturingTable.Location = new System.Drawing.Point(0, 0);
             this.ManufacturingTable.Name = "ManufacturingTable";
+            this.ManufacturingTable.RowHeadersWidth = 21;
             this.ManufacturingTable.RowTemplate.Height = 18;
             this.ManufacturingTable.Size = new System.Drawing.Size(725, 163);
             this.ManufacturingTable.TabIndex = 0;
@@ -444,6 +479,7 @@
             this.OverviewTable.Dock = System.Windows.Forms.DockStyle.Fill;
             this.OverviewTable.Location = new System.Drawing.Point(0, 0);
             this.OverviewTable.Name = "OverviewTable";
+            this.OverviewTable.RowHeadersWidth = 21;
             this.OverviewTable.Size = new System.Drawing.Size(725, 448);
             this.OverviewTable.TabIndex = 0;
             // 
@@ -480,7 +516,7 @@
             // 
             // ClearCart
             // 
-            this.ClearCart.Location = new System.Drawing.Point(92, 3);
+            this.ClearCart.Location = new System.Drawing.Point(6, 3);
             this.ClearCart.Name = "ClearCart";
             this.ClearCart.Size = new System.Drawing.Size(75, 23);
             this.ClearCart.TabIndex = 2;
@@ -499,7 +535,8 @@
             // 
             // ExportCart
             // 
-            this.ExportCart.Location = new System.Drawing.Point(3, 3);
+            this.ExportCart.Enabled = false;
+            this.ExportCart.Location = new System.Drawing.Point(87, 3);
             this.ExportCart.Name = "ExportCart";
             this.ExportCart.Size = new System.Drawing.Size(83, 23);
             this.ExportCart.TabIndex = 0;
@@ -515,6 +552,7 @@
             this.ShoppingCart.Dock = System.Windows.Forms.DockStyle.Fill;
             this.ShoppingCart.Location = new System.Drawing.Point(0, 0);
             this.ShoppingCart.Name = "ShoppingCart";
+            this.ShoppingCart.RowHeadersWidth = 21;
             this.ShoppingCart.Size = new System.Drawing.Size(725, 431);
             this.ShoppingCart.TabIndex = 0;
             // 
@@ -797,7 +835,10 @@
         private System.Windows.Forms.Button ExportCart;
         private System.Windows.Forms.DataGridView ShoppingCart;
         private System.Windows.Forms.Button AddShoppingMaterials;
-        private System.Windows.Forms.Button AddShoppingMaterials2;
+        private System.Windows.Forms.Label RunsToPay;
+        private System.Windows.Forms.Label label5;
+        private System.Windows.Forms.Label BpoCost;
+        private System.Windows.Forms.Label label6;
     }
 }
 

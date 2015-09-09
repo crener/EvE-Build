@@ -5,6 +5,10 @@ VisualStudioVersion = 12.0.30501.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EvE Build", "EvE Build\EvE Build.csproj", "{2A08173E-CE13-403E-9F49-E7CFC8D63E5F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EveCentralDataPuller", "EveCentralDataPuller\EveCentralDataPuller.csproj", "{56B63A4E-1C38-49C7-AF92-D69D8D6C7311}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YAMLImportTester", "YAMLImportTester\YAMLImportTester.csproj", "{F82C12B4-C2C5-4E44-B024-244538A2023B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -16,11 +20,16 @@ Global
 		{2A08173E-CE13-403E-9F49-E7CFC8D63E5F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2A08173E-CE13-403E-9F49-E7CFC8D63E5F}.Release|Any CPU.Build.0 = Release|Any CPU
 		{2A08173E-CE13-403E-9F49-E7CFC8D63E5F}.Release|Any CPU.Deploy.0 = Release|Any CPU
+		{56B63A4E-1C38-49C7-AF92-D69D8D6C7311}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{56B63A4E-1C38-49C7-AF92-D69D8D6C7311}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{56B63A4E-1C38-49C7-AF92-D69D8D6C7311}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{56B63A4E-1C38-49C7-AF92-D69D8D6C7311}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F82C12B4-C2C5-4E44-B024-244538A2023B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F82C12B4-C2C5-4E44-B024-244538A2023B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F82C12B4-C2C5-4E44-B024-244538A2023B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F82C12B4-C2C5-4E44-B024-244538A2023B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
-	EndGlobalSection
-	GlobalSection(Performance) = preSolution
-		HasPerformanceSessions = true
 	EndGlobalSection
 EndGlobal

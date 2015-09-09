@@ -153,7 +153,8 @@ namespace EvE_Build
                     TEskills = new int[8, 2],
                     copyskills = new int[5, 2];
                 //float invProb = 0f;
-
+                
+                
                 blueprintID = Int32.Parse(((YamlScalarNode)entry.Key).Value);
                 var currentEntry = (YamlMappingNode)map.Children[entry.Key];
                 YamlMappingNode activities = map;
@@ -317,27 +318,87 @@ namespace EvE_Build
                         itemPosition = i;
                     }
                 }
+
                 if (found == false){
-                    //item couldn't be found do move onto the next item
+                    for (int i = 0; i < items.Length && found == false; ++i)
+                    {
+                        if (items[i].getBlueprintTypeID() == itemID)
+                        {
+                            //item blueprint has been located 
+                            YamlMappingNode price = (YamlMappingNode)map.Children[entry.Key];
+                            foreach (var priceNode in price)
+                            {
+                                if (priceNode.Key.ToString() == "basePrice")
+                                {
+                                    string temp = priceNode.Value.ToString();
+                                    temp = temp.Remove(temp.Length - 2, 1);
+                                    Int64 blueprice = Convert.ToInt64(temp) * 10;
+
+                                    items[i].setBlueprintPrice(blueprice);
+                                }
+                            }
+                        }
+                    }
                     continue;
                 }
 
-                //time to get the name value of the item
-                var item = (YamlMappingNode)map.Children[entry.Key];
-                YamlNode nameNode = new YamlScalarNode("name");
-                var name = (YamlMappingNode)item.Children[nameNode];
                 string itemName = "";
+                float volume = 0f,
+                    mass = 0f;
+                int groupID = 0,
+                    marketGroupID = 0,
+                    faction = 0,
+                    race = 0;
 
-                foreach (var langName in name)
+                YamlMappingNode details = (YamlMappingNode)map.Children[entry.Key];
+                foreach (var prop in details.Children)
                 {
-                    if ((langName.Key).ToString() == language)
+                    if (prop.Key.ToString() == "name")
                     {
-                        itemName = (langName.Value).ToString();
+                        var item = (YamlMappingNode)map.Children[entry.Key];
+                        YamlNode nameNode = new YamlScalarNode("name");
+                        var name = (YamlMappingNode)item.Children[nameNode];
+
+                        foreach (var langName in name)
+                        {
+                            if ((langName.Key).ToString() == language)
+                            {
+                                itemName = (langName.Value).ToString();
+                                items[itemPosition].setName(itemName);
+                            }
+                        }
+                    }
+                    else if (prop.Key.ToString() == "groupID")
+                    {
+                        groupID = Convert.ToInt32(prop.Value.ToString());
+                        items[itemPosition].setGroupID(groupID);
+                    }
+                    else if (prop.Key.ToString() == "marketGroupID")
+                    {
+                        marketGroupID = Convert.ToInt32(prop.Value.ToString());
+                        items[itemPosition].setMarketGroupID(marketGroupID);
+                    }
+                    else if (prop.Key.ToString() == "volume")
+                    {
+                        volume = Convert.ToSingle(prop.Value.ToString());
+                        items[itemPosition].setVolume(volume);
+                    }
+                    else if (prop.Key.ToString() == "mass")
+                    {
+                        mass = Convert.ToSingle(prop.Value.ToString());
+                        items[itemPosition].setMass(mass);
+                    }
+                    else if (prop.Key.ToString() == "raceID")
+                    {
+                        race = Convert.ToInt32(prop.Value.ToString());
+                        items[itemPosition].setRace(race);
+                    }
+                    else if (prop.Key.ToString() == "factionID")
+                    {
+                        faction = Convert.ToInt32(prop.Value.ToString());
+                        items[itemPosition].setFaction(faction);
                     }
                 }
-
-                //set the item name
-                items[itemPosition].setName(itemName);
 
                 //reset
                 found = false;
