@@ -85,27 +85,7 @@ namespace EveCentralDataPuller
         string getWebData(int stationID, int item)
         {
             string search = "http://api.eve-central.com/api/marketstat?&usesystem=" + stationID + "&typeid=" + item;
-
-            HttpWebRequest myRequest = (HttpWebRequest)WebRequest.Create(search);
-            myRequest.Method = "GET";
-            myRequest.Timeout = 3000;
-            WebResponse myResponse;
-            try
-            {
-                myResponse = myRequest.GetResponse();
-
-                StreamReader sr = new StreamReader(myResponse.GetResponseStream(), System.Text.Encoding.UTF8);
-                string result = sr.ReadToEnd();
-                sr.Close();
-                myResponse.Close();
-
-                return result;
-            }
-            catch (WebException)
-            {
-                Console.WriteLine("WEB QUERY FAILED");
-            }
-            return "";
+            return Search(search);
         }
 
         string getWebData(int stationID, int[] item)
@@ -114,14 +94,19 @@ namespace EveCentralDataPuller
                 newItem = "&typeid=";
             for (int i = 0; item[i] != 0; ++i)
             {
-                if (item[i] != null && item[i] != 0){
+                if (item[i] != 0){
                     items +=  newItem + item[i];
                 }
             }
 
             string search = "http://api.eve-central.com/api/marketstat?&usesystem=" + stationID + items;
 
-            HttpWebRequest myRequest = (HttpWebRequest)WebRequest.Create(search);
+            return Search(search);
+        }
+
+        private string Search(string term)
+        {
+            HttpWebRequest myRequest = (HttpWebRequest)WebRequest.Create(term);
             myRequest.Method = "GET";
             myRequest.Timeout = 3000;
             WebResponse myResponse;
@@ -141,6 +126,7 @@ namespace EveCentralDataPuller
                 Console.WriteLine("WEB QUERY FAILED");
             }
             return "";
+
         }
 
         void extractPrice(string search, int item)

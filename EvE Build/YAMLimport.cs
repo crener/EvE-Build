@@ -7,6 +7,7 @@ namespace EvE_Build
     public class YAML
     {
         int[] blacklist = new int[80];
+        YamlStream blue, name;
 
         public YAML()
         {
@@ -92,21 +93,19 @@ namespace EvE_Build
             blacklist[78] = 23736;
             blacklist[79] = 935;
             #endregion
-        }
-        public Item[] ImportData(string blueprintsFile, string nameFile)
-        {
-            //get input file
-            StreamReader file = new StreamReader(blueprintsFile);
-            YamlStream blue = new YamlStream();
+
+            StreamReader file = new StreamReader("StaticData/blueprints.Yaml");
+            blue = new YamlStream();
             blue.Load(file);
             file.Close();
 
-            //get input file
-            file = new StreamReader(nameFile);
-            YamlStream name = new YamlStream();
+            file = new StreamReader("StaticData/typeIDs.yaml");
+            name = new YamlStream();
             name.Load(file);
             file.Close();
-
+        }
+        public Item[] ImportData()
+        {
             Item[] Items = new Item[YdnItemSetup(blue)];
             Items = YdnItemImport(blue, ref Items);
 
@@ -410,13 +409,9 @@ namespace EvE_Build
             string[] name = new string[typeId.Length];
             int r = 0;
 
-            StreamReader file = new StreamReader(fileLocation);
-            YamlStream yaml = new YamlStream();
-            yaml.Load(file);
-
             int itemID, itemPosition = 0;
             bool found = false;
-            var map = (YamlMappingNode)yaml.Documents[0].RootNode;
+            var map = (YamlMappingNode)this.name.Documents[0].RootNode;
             //figure out if there is an item for the current entry
             foreach (var entry in map.Children)
             {
@@ -804,16 +799,10 @@ namespace EvE_Build
                 typeId[i] = mat[i].ID;
             }
 
-            string[] name = new string[typeId.Length];
             int r = 0;
-
-            StreamReader file = new StreamReader(fileLocation);
-            YamlStream yaml = new YamlStream();
-            yaml.Load(file);
-
             int itemID, itemPosition = 0;
             bool found = false;
-            var map = (YamlMappingNode)yaml.Documents[0].RootNode;
+            var map = (YamlMappingNode)name.Documents[0].RootNode;
             //figure out if there is an item for the current entry
             foreach (var entry in map.Children)
             {
@@ -834,21 +823,56 @@ namespace EvE_Build
                 }
 
                 //time to get the name value of the item
-                var item = (YamlMappingNode)map.Children[entry.Key];
-                var nameNode = (YamlMappingNode)item.Children[(new YamlScalarNode("name"))];
-                string itemName = "";
-
-                foreach (var langName in nameNode)
+                YamlMappingNode details = (YamlMappingNode)map.Children[entry.Key];
+                foreach (var prop in details.Children)
                 {
-                    if ((langName.Key).ToString() == language)
+                    if (prop.Key.ToString() == "name")
                     {
-                        itemName = (langName.Value).ToString();
-                        break;
+                        var item = (YamlMappingNode)map.Children[entry.Key];
+                        YamlNode nameNode = new YamlScalarNode("name");
+                        var name = (YamlMappingNode)item.Children[nameNode];
+
+                        foreach (var langName in name)
+                        {
+                            if ((langName.Key).ToString() == language)
+                            {
+                                string itemName = (langName.Value).ToString();
+                                mat[itemPosition].name = itemName;
+                            }
+                        }
+                    }
+                    else if (prop.Key.ToString() == "groupID")
+                    {
+                        int groupID = Convert.ToInt32(prop.Value.ToString());
+                        mat[itemPosition].groupID = groupID;
+                    }
+                    else if (prop.Key.ToString() == "marketGroupID")
+                    {
+                        int marketGroupID = Convert.ToInt32(prop.Value.ToString());
+                        mat[itemPosition].marketGroupID = marketGroupID;
+                    }
+                    else if (prop.Key.ToString() == "volume")
+                    {
+                        float volume = Convert.ToSingle(prop.Value.ToString());
+                        mat[itemPosition].volume = volume;
+                    }
+                    else if (prop.Key.ToString() == "mass")
+                    {
+                        float mass = Convert.ToSingle(prop.Value.ToString());
+                        mat[itemPosition].mass = mass;
+                    }
+                    else if (prop.Key.ToString() == "raceID")
+                    {
+                        int race = Convert.ToInt32(prop.Value.ToString());
+                        mat[itemPosition].race = race;
+                    }
+                    else if (prop.Key.ToString() == "factionID")
+                    {
+                        int faction = Convert.ToInt32(prop.Value.ToString());
+                        mat[itemPosition].faction = faction;
                     }
                 }
 
-                //set the item name
-                mat[itemPosition].name = itemName;
                 ++r;
 
                 //reset

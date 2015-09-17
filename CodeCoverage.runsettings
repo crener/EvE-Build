@@ -1,0 +1,10 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ModulePaths>
+  <Exclude>
+    <ModulePath>.*\.tests\..*</ModulePath>
+    <ModulePath>.*\.Tests\..*</ModulePath>
+    <ModulePath>.\.EveCentralDataPuller\</ModulePath>
+    <ModulePath>.\.YAMLImportTester\</ModulePath>
+    <Source>.\.EveCentralDataPuller\</Source>
+  </Exclude>
+</ModulePaths>

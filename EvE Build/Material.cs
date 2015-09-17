@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace EvE_Build
 {
@@ -13,7 +9,12 @@ namespace EvE_Build
         public Int64[,] price { get; set; }
         public string name { get; set; }
         public int ID { get; set; }
+        public int groupID { get; set; }
+        public int marketGroupID { get; set; }
+        public int race { get; set; }
+        public int faction { get; set; }
         public float volume { get; set; }
+        public float mass { get; set; }
 
         public Material()
         {
@@ -21,6 +22,11 @@ namespace EvE_Build
             name = "unknown";
             ID = 0;
             volume = 0.0f;
+            mass = 0.0f;
+            groupID = 0;
+            marketGroupID = 0;
+            race = 0;
+            faction = 0;
         }
 
         public void updatePrice(int stationIndex, Int64 buy, Int64 sell) {

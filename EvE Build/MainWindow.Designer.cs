@@ -1,4 +1,4 @@
-﻿namespace EvE_Build
+﻿namespace EvE_Build_UI
 {
     partial class MainWindow
     {
@@ -32,6 +32,11 @@
             this.TabControl = new System.Windows.Forms.TabControl();
             this.TabManufacture = new System.Windows.Forms.TabPage();
             this.splitContainer2 = new System.Windows.Forms.SplitContainer();
+            this.BaseMaterials = new System.Windows.Forms.CheckBox();
+            this.ItemVolume = new System.Windows.Forms.Label();
+            this.MaterialVolume = new System.Windows.Forms.Label();
+            this.label8 = new System.Windows.Forms.Label();
+            this.label7 = new System.Windows.Forms.Label();
             this.BpoCost = new System.Windows.Forms.Label();
             this.label6 = new System.Windows.Forms.Label();
             this.RunsToPay = new System.Windows.Forms.Label();
@@ -156,6 +161,11 @@
             // 
             // splitContainer2.Panel1
             // 
+            this.splitContainer2.Panel1.Controls.Add(this.BaseMaterials);
+            this.splitContainer2.Panel1.Controls.Add(this.ItemVolume);
+            this.splitContainer2.Panel1.Controls.Add(this.MaterialVolume);
+            this.splitContainer2.Panel1.Controls.Add(this.label8);
+            this.splitContainer2.Panel1.Controls.Add(this.label7);
             this.splitContainer2.Panel1.Controls.Add(this.BpoCost);
             this.splitContainer2.Panel1.Controls.Add(this.label6);
             this.splitContainer2.Panel1.Controls.Add(this.RunsToPay);
@@ -180,6 +190,55 @@
             this.splitContainer2.Size = new System.Drawing.Size(725, 478);
             this.splitContainer2.SplitterDistance = 311;
             this.splitContainer2.TabIndex = 2;
+            // 
+            // BaseMaterials
+            // 
+            this.BaseMaterials.AutoSize = true;
+            this.BaseMaterials.Checked = true;
+            this.BaseMaterials.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.BaseMaterials.Location = new System.Drawing.Point(203, 25);
+            this.BaseMaterials.Name = "BaseMaterials";
+            this.BaseMaterials.Size = new System.Drawing.Size(263, 17);
+            this.BaseMaterials.TabIndex = 21;
+            this.BaseMaterials.Text = "get the base level materials when caluclating price";
+            this.BaseMaterials.UseVisualStyleBackColor = true;
+            this.BaseMaterials.CheckedChanged += new System.EventHandler(this.BaseMaterials_CheckedChanged);
+            // 
+            // ItemVolume
+            // 
+            this.ItemVolume.AutoSize = true;
+            this.ItemVolume.Location = new System.Drawing.Point(283, 116);
+            this.ItemVolume.Name = "ItemVolume";
+            this.ItemVolume.Size = new System.Drawing.Size(31, 13);
+            this.ItemVolume.TabIndex = 20;
+            this.ItemVolume.Text = "0 M3";
+            // 
+            // MaterialVolume
+            // 
+            this.MaterialVolume.AutoSize = true;
+            this.MaterialVolume.Location = new System.Drawing.Point(283, 129);
+            this.MaterialVolume.Name = "MaterialVolume";
+            this.MaterialVolume.Size = new System.Drawing.Size(31, 13);
+            this.MaterialVolume.TabIndex = 19;
+            this.MaterialVolume.Text = "0 M3";
+            // 
+            // label8
+            // 
+            this.label8.AutoSize = true;
+            this.label8.Location = new System.Drawing.Point(203, 129);
+            this.label8.Name = "label8";
+            this.label8.Size = new System.Drawing.Size(87, 13);
+            this.label8.TabIndex = 18;
+            this.label8.Text = "Material volume: ";
+            // 
+            // label7
+            // 
+            this.label7.AutoSize = true;
+            this.label7.Location = new System.Drawing.Point(203, 116);
+            this.label7.Name = "label7";
+            this.label7.Size = new System.Drawing.Size(70, 13);
+            this.label7.TabIndex = 17;
+            this.label7.Text = "Item volume: ";
             // 
             // BpoCost
             // 
@@ -364,6 +423,7 @@
             this.ManufacturingTable.RowTemplate.Height = 18;
             this.ManufacturingTable.Size = new System.Drawing.Size(725, 163);
             this.ManufacturingTable.TabIndex = 0;
+            this.ManufacturingTable.CellContentClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.ManufacturingTable_CellContentClick);
             // 
             // Overview
             // 
@@ -522,6 +582,7 @@
             this.ClearCart.TabIndex = 2;
             this.ClearCart.Text = "Empty Cart";
             this.ClearCart.UseVisualStyleBackColor = true;
+            this.ClearCart.Click += new System.EventHandler(this.ClearCart_Click);
             // 
             // label4
             // 
@@ -796,19 +857,13 @@
         private System.Windows.Forms.TextBox searchBox;
         private System.Windows.Forms.SplitContainer splitContainer1;
         private System.Windows.Forms.SplitContainer splitContainer3;
-        private System.Windows.Forms.TrackBar MESlider;
         private System.Windows.Forms.SplitContainer splitContainer2;
         private System.Windows.Forms.ListBox itemSelectAll;
         private System.Windows.Forms.MenuStrip menuStrip1;
         private System.Windows.Forms.ToolStripMenuItem optionsToolStripMenuItem;
-        private System.Windows.Forms.DataGridView ManufacturingTable;
-        private System.Windows.Forms.DataGridView ProfitView;
         private System.Windows.Forms.Label MEL;
         private System.Windows.Forms.Label DisplayName;
-        private System.Windows.Forms.Label DisplayType;
         private System.Windows.Forms.Label TEL;
-        private System.Windows.Forms.TrackBar TESlider;
-        private System.Windows.Forms.Label DisplayBType;
         private System.Windows.Forms.StatusStrip statusStrip1;
         private System.Windows.Forms.ToolStripProgressBar ToolProgress;
         private System.Windows.Forms.ToolStripStatusLabel ToolProgLbl;
@@ -824,9 +879,7 @@
         private System.Windows.Forms.Button OverviewStart;
         private System.Windows.Forms.CheckBox OverviewFaction;
         private System.Windows.Forms.TreeView GroupView;
-        private System.Windows.Forms.CheckBox sellorBuyCheck;
         private System.Windows.Forms.Label label3;
-        private System.Windows.Forms.NumericUpDown RunSelect;
         private System.Windows.Forms.Label maxRuns;
         private System.Windows.Forms.TabPage ShopingTab;
         private System.Windows.Forms.SplitContainer splitContainer6;
@@ -835,10 +888,23 @@
         private System.Windows.Forms.Button ExportCart;
         private System.Windows.Forms.DataGridView ShoppingCart;
         private System.Windows.Forms.Button AddShoppingMaterials;
-        private System.Windows.Forms.Label RunsToPay;
         private System.Windows.Forms.Label label5;
-        private System.Windows.Forms.Label BpoCost;
         private System.Windows.Forms.Label label6;
+        private System.Windows.Forms.Label label8;
+        private System.Windows.Forms.Label label7;
+        public System.Windows.Forms.TrackBar MESlider;
+        public System.Windows.Forms.DataGridView ManufacturingTable;
+        public System.Windows.Forms.DataGridView ProfitView;
+        public System.Windows.Forms.Label DisplayType;
+        public System.Windows.Forms.TrackBar TESlider;
+        public System.Windows.Forms.Label DisplayBType;
+        public System.Windows.Forms.CheckBox sellorBuyCheck;
+        public System.Windows.Forms.NumericUpDown RunSelect;
+        public System.Windows.Forms.Label RunsToPay;
+        public System.Windows.Forms.Label BpoCost;
+        public System.Windows.Forms.Label ItemVolume;
+        public System.Windows.Forms.Label MaterialVolume;
+        public System.Windows.Forms.CheckBox BaseMaterials;
     }
 }
 

@@ -264,16 +264,16 @@ namespace YAMLImportTester
             //start by disecting the lines
             int blueprintID = Int32.Parse(lines[0].Remove(lines[0].Length - 1)),
                 copyTime = -1,
-                METime = -1,
-                TETime = -1,
+                //METime = -1,
+                //TETime = -1,
                 prodLmt = -1,
                 itemID = 0,
                 productionQty = 1,
                 productionTime = 0,
-                scanLine = 0,
-                invID = 0,
-                invQty = 1,
-                invTime = 0;
+                scanLine = 0;
+                //invID = 0,
+                //invQty = 1,
+                //invTime = 0;
             int[,] prodMats = new int[20, 2],
                 invMats = new int[6, 2],
                 copyMats = new int[5, 2],
@@ -281,7 +281,7 @@ namespace YAMLImportTester
                 MEskills = new int[8, 2],
                 TEskills = new int[8, 2],
                 copyskills = new int[5, 2];
-            float invProb = 0f;
+            //float invProb = 0f;
 
             try
             {
