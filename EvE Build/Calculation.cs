@@ -30,14 +30,7 @@ namespace EvE_Build
 
         //form interaction
         ListBox itemSelectAll = null;
-        Label MEL = null,
-            TEL = null,
-            ItemVolume,
-            maxRuns,
-            DisplayName,
-            DisplayType,
-            DisplayBType,
-            BpoCost,
+        Label BpoCost,
             RunsToPay,
             MaterialVolume;
         TrackBar MESlider = null,
@@ -53,17 +46,11 @@ namespace EvE_Build
         NumericUpDown RunSelect;
         Thread littleMinion,
             eveCentralBot;
+        TreeView GroupView;
 
         public Calculation() { }
 
         public Calculation(ListBox itemSelectAll,
-        Label MEL,
-        Label TEL,
-        Label ItemVolume,
-        Label maxRuns,
-        Label DisplayName,
-        Label DisplayType,
-        Label DisplayBType,
         Label BpoCost,
         Label RunsToPay,
         Label MaterialVolume,
@@ -78,16 +65,10 @@ namespace EvE_Build
         DataGridView ProfitView,
         DataGridView ShoppingCart,
         NumericUpDown RunSelect,
-        Thread littleMinion)
+        Thread littleMinion,
+        TreeView group)
         {
             this.itemSelectAll = itemSelectAll;
-            this.MEL = MEL;
-            this.TEL = TEL;
-            this.ItemVolume = ItemVolume;
-            this.maxRuns = maxRuns;
-            this.DisplayName = DisplayName;
-            this.DisplayType = DisplayType;
-            this.DisplayBType = DisplayBType;
             this.BpoCost = BpoCost;
             this.RunsToPay = RunsToPay;
             this.MaterialVolume = MaterialVolume;
@@ -103,7 +84,7 @@ namespace EvE_Build
             this.ShoppingCart = ShoppingCart;
             this.RunSelect = RunSelect;
             this.littleMinion = littleMinion;
-
+            GroupView = group;
             Settings();
         }
 
@@ -141,12 +122,13 @@ namespace EvE_Build
 
         public void populateItemList()
         {
+            
             try
             {
                 //create and populate items for the itemselector
                 YAML importer = new YAML();
                 items = importer.ImportData();
-
+                
                 List<string> data = new List<string>();
                 string[] tmpStorage = new string[items.Length];
                 int i = 0;
@@ -307,6 +289,7 @@ namespace EvE_Build
 
                             search = new int[50];
                         }
+
                         //check that there is data returned
                         Int64[,] dataCheck = eveBotInterface.extractPrice(data, tempID);
                         Random ran = new Random();
@@ -481,56 +464,44 @@ namespace EvE_Build
             }
         }
 
-        public void WorkOutData()
+        public void WorkOutData(int itemIndex)
         {
-            if (items == null || itemSelectAll.Items.Count == 0)
+            if (items == null)
             {
                 return;
             }
 
-            int itemIndex = NametoItemIndex(itemSelectAll.SelectedItem.ToString());
-
-            //update labels
-            MEL.Text = "ME Level: " + MESlider.Value;
-            TEL.Text = "TE Level: " + TESlider.Value;
-            ItemVolume.Text = (items[itemIndex].getVolume() * Convert.ToInt32(RunSelect.Value)) + " m3";
-
-            //update limit value
-            maxRuns.Text = "Maximum runs: " + items[itemIndex].getProdLmt();
-
             //work out the material costs
-            ItemProporties();
-
-            //work out the profitability
-            DisplayName.Text = itemSelectAll.SelectedItem.ToString();
-            DisplayType.Text = "ID" + items[itemIndex].getTypeID().ToString();
-            DisplayBType.Text = "B" + NametoBlueprintID(itemSelectAll.SelectedItem.ToString());
+            ItemProporties(itemIndex);
 
             //fill in runs needed until BPO pays for itself
             Int64 bestPrice = 0;
             int station = 0;
-            Item item = items[NametoItemIndex(itemSelectAll.SelectedItem.ToString())];
+            Item item = items[itemIndex];
             for (int i = 0; i < 5; ++i)
             {
                 if (stationIds[i] != 0)
                 {
-                    Int64 itemCost = getItemValue(items[NametoItemIndex(itemSelectAll.SelectedItem.ToString())],
+                    Int64 itemCost = getItemValue(items[itemIndex],
                         MESlider.Value, i);
 
                     itemCost = item.getSellPrice(i) - (itemCost / item.getProdQty());
-                    if (itemCost < bestPrice || itemCost > bestPrice && bestPrice == 0)
+                    if (itemCost > bestPrice || itemCost > bestPrice && bestPrice == 0)
                     {
                         bestPrice = itemCost;
                         station = i;
                     }
                 }
             }
+            //get the amount of runs required to pay for the BPO
             int runs = 0;
             if (bestPrice != 0)
             {
                 runs = CorrectRounding((item.getBlueprintPrice() / bestPrice) + 0.5f);
             }
+
             BpoCost.Text = format(item.getBlueprintPrice().ToString()) + " isk";
+
             if (runs <= 0)
             {
                 RunsToPay.Text = "not profitable";
@@ -540,10 +511,10 @@ namespace EvE_Build
                 RunsToPay.Text = runs + " runs in " + stationNames[station];
             }
 
-            Profit();
+            Profit(itemIndex);
         }
 
-        private void Profit()
+        private void Profit(int itemIndex)
         {
             //create a datatable and setup
             DataTable table = new DataTable();
@@ -555,20 +526,7 @@ namespace EvE_Build
             table.Columns.Add("Isk per Hour", typeof(string));
             table.Columns.Add("Investment/Profit", typeof(float));
 
-            Item current = new Item(0, 0);
-
-            //figure out what the type ID of the item is
-            int index = NametoItemIndex(itemSelectAll.Text.ToString());
-            if (index != -1)
-            {
-                //get the item
-                current = items[index];
-            }
-            else
-            {
-                //index doesn't exist
-                return;
-            }
+            Item current = items[itemIndex];
 
             bool second = false;
             int quantity = 0;
@@ -693,27 +651,14 @@ namespace EvE_Build
             ProfitView.DataSource = table;
         }
 
-        private void ItemProporties()
+        private void ItemProporties(int itemIndex)
         {
             if (items == null || prodMats == null)
             {
                 return;
             }
 
-            Item current = new Item(0, 0);
-
-            //figure out what the type ID of the item is
-            int index = NametoItemIndex(itemSelectAll.Text.ToString());
-            if (index != -1)
-            {
-                //get the item
-                current = items[index];
-            }
-            else
-            {
-                //index doesn't exist
-                return;
-            }
+            Item current = items[itemIndex];
 
             //update data
             DataTable table = new DataTable();
@@ -1005,18 +950,394 @@ namespace EvE_Build
 
         public void SetupTreeView()
         {
-            //populate the gruop tree view with items
+            //populate top most view with items
+            GroupView.Nodes.Add("Ammunition & Charges");
+            GroupView.Nodes.Add("Drones");
+            GroupView.Nodes.Add("Maufacture & Research");
+            GroupView.Nodes.Add("Ship Equipment");
+            GroupView.Nodes.Add("Ship Modifications");
+            GroupView.Nodes.Add("Ships");
+            GroupView.Nodes.Add("Structures");
 
+            //populate ammunition and crystals
+            //TODO fix this
+            #region AmmunitionAndCharges
+            GroupView.Nodes[0].Nodes.Add("Frequency Crystals");
+            GroupView.Nodes[0].Nodes.Add("Hybrid Crystals");
+            GroupView.Nodes[0].Nodes.Add("Missiles");
+            GroupView.Nodes[0].Nodes.Add("Probes");
+            GroupView.Nodes[0].Nodes.Add("Projectile Ammo");
+            GroupView.Nodes[0].Nodes.Add("Bombs");
+            GroupView.Nodes[0].Nodes.Add("Cap Booster Charges");
+            GroupView.Nodes[0].Nodes.Add("Mining Crystals");
+            GroupView.Nodes[0].Nodes.Add("Nanite Repair Paste");
+            GroupView.Nodes[0].Nodes.Add("Scripts");
+            //for (int i = 0; i < 2; ++i)
+            //{
+            //    GroupView.Nodes[0].Nodes[i].Nodes.Add("Extra Large");
+            //    GroupView.Nodes[0].Nodes[i].Nodes.Add("Large");
+            //    GroupView.Nodes[0].Nodes[i].Nodes.Add("Medium");
+            //    GroupView.Nodes[0].Nodes[i].Nodes.Add("Orbital Strike");
+            //    GroupView.Nodes[0].Nodes[i].Nodes.Add("Small");
+            //}
+            //GroupView.Nodes[0].Nodes[4].Nodes.Add("Extra Large");
+            //GroupView.Nodes[0].Nodes[4].Nodes.Add("Large");
+            //GroupView.Nodes[0].Nodes[4].Nodes.Add("Medium");
+            //GroupView.Nodes[0].Nodes[4].Nodes.Add("Orbital Strike");
+            //GroupView.Nodes[0].Nodes[4].Nodes.Add("Small");
 
+            ////fill in the items for frequency crystals
+            //GroupView.Nodes[0].Nodes[0].Nodes[0].Nodes.AddRange(PopulateTreeCategory(503));
+            //GroupView.Nodes[0].Nodes[0].Nodes[1].Nodes.AddRange(PopulateTreeCategory(105));
+            //GroupView.Nodes[0].Nodes[0].Nodes[2].Nodes.AddRange(PopulateTreeCategory(103));
+            //GroupView.Nodes[0].Nodes[0].Nodes[3].Nodes.AddRange(PopulateTreeCategory(1599));
+            //GroupView.Nodes[0].Nodes[0].Nodes[4].Nodes.AddRange(PopulateTreeCategory(102));
 
+            ////fill in the items for hybrid charges
+            //GroupView.Nodes[0].Nodes[1].Nodes[0].Nodes.AddRange(PopulateTreeCategory(504));
+            //GroupView.Nodes[0].Nodes[1].Nodes[1].Nodes.AddRange(PopulateTreeCategory(106));
+            //GroupView.Nodes[0].Nodes[1].Nodes[2].Nodes.AddRange(PopulateTreeCategory(108));
+            //GroupView.Nodes[0].Nodes[1].Nodes[3].Nodes.AddRange(PopulateTreeCategory(1600));
+            //GroupView.Nodes[0].Nodes[1].Nodes[4].Nodes.AddRange(PopulateTreeCategory(107));
 
+            //GroupView.Nodes[0].Nodes[2].Nodes.Add("Auto-Targeting");
+            //GroupView.Nodes[0].Nodes[2].Nodes[0].Nodes.AddRange(PopulateTreeCategory(914));
+            //GroupView.Nodes[0].Nodes[2].Nodes.Add("Citadel Cruise Missiles");
+            //GroupView.Nodes[0].Nodes[2].Nodes[1].Nodes.AddRange(PopulateTreeCategory(1287));
+            //GroupView.Nodes[0].Nodes[2].Nodes.Add("Citadel Torpedos");
+            //GroupView.Nodes[0].Nodes[2].Nodes[2].Nodes.AddRange(PopulateTreeCategory(1193));
+            //GroupView.Nodes[0].Nodes[2].Nodes.Add("Cruise Missiles");
+            //GroupView.Nodes[0].Nodes[2].Nodes[3].Nodes.AddRange(PopulateTreeCategory(921));
+            //GroupView.Nodes[0].Nodes[2].Nodes.Add("Defender");
+            //GroupView.Nodes[0].Nodes[2].Nodes[4].Nodes.AddRange(PopulateTreeCategory(116));
+            //GroupView.Nodes[0].Nodes[2].Nodes.Add("Heavy Assult Missiles");
+            //GroupView.Nodes[0].Nodes[2].Nodes[5].Nodes.AddRange(PopulateTreeCategory(971));
+            //GroupView.Nodes[0].Nodes[2].Nodes.Add("Heavy Missiles");
+            //GroupView.Nodes[0].Nodes[2].Nodes[6].Nodes.AddRange(PopulateTreeCategory(924));
+            //GroupView.Nodes[0].Nodes[2].Nodes.Add("Light Missiles");
+            //GroupView.Nodes[0].Nodes[2].Nodes[7].Nodes.AddRange(PopulateTreeCategory(1287));
+            //GroupView.Nodes[0].Nodes[2].Nodes.Add("Rockets");
+            //GroupView.Nodes[0].Nodes[2].Nodes[8].Nodes.AddRange(PopulateTreeCategory(1287));
+            //GroupView.Nodes[0].Nodes[2].Nodes.Add("Torpedoes");
+            //GroupView.Nodes[0].Nodes[2].Nodes[9].Nodes.AddRange(PopulateTreeCategory(1287));
+
+            //Bombs
+            GroupView.Nodes[0].Nodes[5].Nodes.AddRange(PopulateTreeCategory(1015));
+
+            //Cap Booster Charges
+            GroupView.Nodes[0].Nodes[6].Nodes.AddRange(PopulateTreeCategory(139));
+
+            //Mining Crystals
+            GroupView.Nodes[0].Nodes[7].Nodes.AddRange(PopulateTreeCategory(593));
+
+            //Nanite Repair Paste
+            GroupView.Nodes[0].Nodes[8].Nodes.AddRange(PopulateTreeCategory(1103));
+
+            //scripts
+            GroupView.Nodes[0].Nodes[9].Nodes.AddRange(PopulateTreeCategory(1094));
+            #endregion
+
+            //populate Drones
+            #region Drones
+            GroupView.Nodes[1].Nodes.Add("Combat Drones");
+            GroupView.Nodes[1].Nodes.Add("Combat Utility Drones");
+            GroupView.Nodes[1].Nodes[1].Nodes.AddRange(PopulateTreeCategory(843));
+            GroupView.Nodes[1].Nodes.Add("Electronic Warefare Drones");
+            GroupView.Nodes[1].Nodes[2].Nodes.AddRange(PopulateTreeCategory(841));
+            GroupView.Nodes[1].Nodes.Add("Logistic Drones");
+            GroupView.Nodes[1].Nodes[3].Nodes.AddRange(PopulateTreeCategory(842));
+            GroupView.Nodes[1].Nodes.Add("Mining Drones");
+            GroupView.Nodes[1].Nodes[4].Nodes.AddRange(PopulateTreeCategory(158));
+            GroupView.Nodes[1].Nodes.Add("Salvage Drones");
+            GroupView.Nodes[1].Nodes[5].Nodes.AddRange(PopulateTreeCategory(1646));
+
+            //fill combat utility drones
+            GroupView.Nodes[1].Nodes[0].Nodes.Add("Fighter Bombers");
+            GroupView.Nodes[1].Nodes[0].Nodes[0].Nodes.AddRange(PopulateTreeCategory(1310));
+            GroupView.Nodes[1].Nodes[0].Nodes.Add("Fighters");
+            GroupView.Nodes[1].Nodes[0].Nodes[1].Nodes.AddRange(PopulateTreeCategory(840));
+            GroupView.Nodes[1].Nodes[0].Nodes.Add("Heavy Attack Drones");
+            GroupView.Nodes[1].Nodes[0].Nodes[2].Nodes.AddRange(PopulateTreeCategory(839));
+            GroupView.Nodes[1].Nodes[0].Nodes.Add("Light Scout Drones");
+            GroupView.Nodes[1].Nodes[0].Nodes[3].Nodes.AddRange(PopulateTreeCategory(837));
+            GroupView.Nodes[1].Nodes[0].Nodes.Add("Medium Scout Drones");
+            GroupView.Nodes[1].Nodes[0].Nodes[4].Nodes.AddRange(PopulateTreeCategory(838));
+            GroupView.Nodes[1].Nodes[0].Nodes.Add("Sentry Drones");
+            GroupView.Nodes[1].Nodes[0].Nodes[5].Nodes.AddRange(PopulateTreeCategory(911));
+            #endregion
+
+            //populate Manufacture and research
+            #region ManufactureAndResearch
+            GroupView.Nodes[2].Nodes.Add("Components");
+            GroupView.Nodes[2].Nodes.Add("R.Db");
+            GroupView.Nodes[2].Nodes[1].Nodes.AddRange(PopulateTreeCategory(1907));
+
+            GroupView.Nodes[2].Nodes[0].Nodes.Add("Advanced Capital Ship Components");
+            GroupView.Nodes[2].Nodes[0].Nodes.Add("Advanced Components");
+            GroupView.Nodes[2].Nodes[0].Nodes.Add("Outpost Components");
+            GroupView.Nodes[2].Nodes[0].Nodes[2].Nodes.Add("Construction Platform");
+            GroupView.Nodes[2].Nodes[0].Nodes[2].Nodes[0].Nodes.AddRange(PopulateTreeCategory(1864));
+            GroupView.Nodes[2].Nodes[0].Nodes[2].Nodes.Add("Station Components");
+            GroupView.Nodes[2].Nodes[0].Nodes[2].Nodes[1].Nodes.AddRange(PopulateTreeCategory(1865));
+            GroupView.Nodes[2].Nodes[0].Nodes.Add("Fuel Blocks");
+            GroupView.Nodes[2].Nodes[0].Nodes[3].Nodes.AddRange(PopulateTreeCategory(1870));
+            GroupView.Nodes[2].Nodes[0].Nodes.Add("R.A.M.");
+            GroupView.Nodes[2].Nodes[0].Nodes[4].Nodes.AddRange(PopulateTreeCategory(1908));
+            GroupView.Nodes[2].Nodes[0].Nodes.Add("Standard Capital System Components");
+            GroupView.Nodes[2].Nodes[0].Nodes[5].Nodes.AddRange(PopulateTreeCategory(781));
+            GroupView.Nodes[2].Nodes[0].Nodes.Add("SubSystem Components");
+            GroupView.Nodes[2].Nodes[0].Nodes[6].Nodes.AddRange(PopulateTreeCategory(1147));
+
+            for (int i = 0; i <=1; ++i)
+            {
+                GroupView.Nodes[2].Nodes[0].Nodes[i].Nodes.Add("Amarr");
+                GroupView.Nodes[2].Nodes[0].Nodes[i].Nodes.Add("Caldari");
+                GroupView.Nodes[2].Nodes[0].Nodes[i].Nodes.Add("Gallente");
+                GroupView.Nodes[2].Nodes[0].Nodes[i].Nodes.Add("Minmatar");
+            }
+
+            GroupView.Nodes[2].Nodes[0].Nodes[0].Nodes[0].Nodes.AddRange(PopulateTreeCategory(1884));
+            GroupView.Nodes[2].Nodes[0].Nodes[0].Nodes[1].Nodes.AddRange(PopulateTreeCategory(1885));
+            GroupView.Nodes[2].Nodes[0].Nodes[0].Nodes[2].Nodes.AddRange(PopulateTreeCategory(1886));
+            GroupView.Nodes[2].Nodes[0].Nodes[0].Nodes[3].Nodes.AddRange(PopulateTreeCategory(1887));
+
+            GroupView.Nodes[2].Nodes[0].Nodes[1].Nodes[0].Nodes.AddRange(PopulateTreeCategory(802));
+            GroupView.Nodes[2].Nodes[0].Nodes[1].Nodes[1].Nodes.AddRange(PopulateTreeCategory(803));
+            GroupView.Nodes[2].Nodes[0].Nodes[1].Nodes[2].Nodes.AddRange(PopulateTreeCategory(1888));
+            GroupView.Nodes[2].Nodes[0].Nodes[1].Nodes[3].Nodes.AddRange(PopulateTreeCategory(1889));
+
+            #endregion
+
+            //populate Ship equipment
+            #region ShipEquipment
+            //TODO finish this
+            #endregion
+
+            //ship modifications
+            #region ShipModification
+            //TODO finish this
+            #endregion
+
+            //ships
+            #region Ships
+            GroupView.Nodes[5].Nodes.Add("Battlecruisers");
+            GroupView.Nodes[5].Nodes.Add("Battleships");
+            GroupView.Nodes[5].Nodes.Add("Capital Ships");
+            GroupView.Nodes[5].Nodes.Add("Cruisers");
+            GroupView.Nodes[5].Nodes.Add("Destroyers");
+            GroupView.Nodes[5].Nodes.Add("Frigates");
+            GroupView.Nodes[5].Nodes.Add("Industrial Ships");
+            GroupView.Nodes[5].Nodes.Add("Mining Barges");
+            GroupView.Nodes[5].Nodes.Add("Shuttles");
+
+            #region BC
+            GroupView.Nodes[5].Nodes[0].Nodes.Add("Advanced Battlecruisers");
+            GroupView.Nodes[5].Nodes[0].Nodes.Add("Faction Battlecruisers");
+            GroupView.Nodes[5].Nodes[0].Nodes.Add("Standard Battlecruisers");
+
+            GroupView.Nodes[5].Nodes[0].Nodes[2].Nodes.Add("Amarr");
+            GroupView.Nodes[5].Nodes[0].Nodes[2].Nodes[0].Nodes.AddRange(PopulateTreeCategory(470));
+            GroupView.Nodes[5].Nodes[0].Nodes[2].Nodes.Add("Caldari");
+            GroupView.Nodes[5].Nodes[0].Nodes[2].Nodes[0].Nodes.AddRange(PopulateTreeCategory(471));
+            GroupView.Nodes[5].Nodes[0].Nodes[2].Nodes.Add("Gallente");
+            GroupView.Nodes[5].Nodes[0].Nodes[2].Nodes[0].Nodes.AddRange(PopulateTreeCategory(472));
+            GroupView.Nodes[5].Nodes[0].Nodes[2].Nodes.Add("Minmatar");
+            GroupView.Nodes[5].Nodes[0].Nodes[2].Nodes[0].Nodes.AddRange(PopulateTreeCategory(473));
+
+            GroupView.Nodes[5].Nodes[0].Nodes[1].Nodes.Add("Navy");
+            GroupView.Nodes[5].Nodes[0].Nodes[1].Nodes[0].Nodes.AddRange(PopulateTreeCategory(1704));
+
+            GroupView.Nodes[5].Nodes[0].Nodes[0].Nodes.Add("Command Ships");
+            GroupView.Nodes[5].Nodes[0].Nodes[0].Nodes[0].Nodes.Add("Amarr");
+            GroupView.Nodes[5].Nodes[0].Nodes[0].Nodes[0].Nodes[0].Nodes.AddRange(PopulateTreeCategory(825));
+            GroupView.Nodes[5].Nodes[0].Nodes[0].Nodes[0].Nodes.Add("Caldari");
+            GroupView.Nodes[5].Nodes[0].Nodes[0].Nodes[0].Nodes[1].Nodes.AddRange(PopulateTreeCategory(828));
+            GroupView.Nodes[5].Nodes[0].Nodes[0].Nodes[0].Nodes.Add("Gallente");
+            GroupView.Nodes[5].Nodes[0].Nodes[0].Nodes[0].Nodes[2].Nodes.AddRange(PopulateTreeCategory(831));
+            GroupView.Nodes[5].Nodes[0].Nodes[0].Nodes[0].Nodes.Add("Minmatar");
+            GroupView.Nodes[5].Nodes[0].Nodes[0].Nodes[0].Nodes[3].Nodes.AddRange(PopulateTreeCategory(834));
+            #endregion
+            #region BS
+            GroupView.Nodes[5].Nodes[1].Nodes.Add("Advanced Battlecruisers");
+            GroupView.Nodes[5].Nodes[1].Nodes.Add("Faction Battlecruisers");
+            GroupView.Nodes[5].Nodes[1].Nodes.Add("Standard Battlecruisers");
+
+            GroupView.Nodes[5].Nodes[1].Nodes[2].Nodes.Add("Amarr");
+            GroupView.Nodes[5].Nodes[1].Nodes[2].Nodes[0].Nodes.AddRange(PopulateTreeCategory(79));
+            GroupView.Nodes[5].Nodes[1].Nodes[2].Nodes.Add("Caldari");
+            GroupView.Nodes[5].Nodes[1].Nodes[2].Nodes[1].Nodes.AddRange(PopulateTreeCategory(80));
+            GroupView.Nodes[5].Nodes[1].Nodes[2].Nodes.Add("Gallente");
+            GroupView.Nodes[5].Nodes[1].Nodes[2].Nodes[2].Nodes.AddRange(PopulateTreeCategory(81));
+            GroupView.Nodes[5].Nodes[1].Nodes[2].Nodes.Add("Minmatar");
+            GroupView.Nodes[5].Nodes[1].Nodes[2].Nodes[3].Nodes.AddRange(PopulateTreeCategory(82));
+
+            GroupView.Nodes[5].Nodes[1].Nodes[1].Nodes.Add("Navy");
+            GroupView.Nodes[5].Nodes[1].Nodes[1].Nodes[0].Nodes.AddRange(PopulateTreeCategory(1379));
+            GroupView.Nodes[5].Nodes[1].Nodes[1].Nodes.Add("Pirate");
+            GroupView.Nodes[5].Nodes[1].Nodes[1].Nodes[1].Nodes.AddRange(PopulateTreeCategory(1380));
+
+            GroupView.Nodes[5].Nodes[1].Nodes[0].Nodes.Add("Black Ops");
+            GroupView.Nodes[5].Nodes[1].Nodes[0].Nodes[0].Nodes.Add("Amarr");
+            GroupView.Nodes[5].Nodes[1].Nodes[0].Nodes[0].Nodes[0].Nodes.AddRange(PopulateTreeCategory(1076));
+            GroupView.Nodes[5].Nodes[1].Nodes[0].Nodes[0].Nodes.Add("Caldari");
+            GroupView.Nodes[5].Nodes[1].Nodes[0].Nodes[0].Nodes[1].Nodes.AddRange(PopulateTreeCategory(1077));
+            GroupView.Nodes[5].Nodes[1].Nodes[0].Nodes[0].Nodes.Add("Gallente");
+            GroupView.Nodes[5].Nodes[1].Nodes[0].Nodes[0].Nodes[2].Nodes.AddRange(PopulateTreeCategory(1078));
+            GroupView.Nodes[5].Nodes[1].Nodes[0].Nodes[0].Nodes.Add("Minmatar");
+            GroupView.Nodes[5].Nodes[1].Nodes[0].Nodes[0].Nodes[3].Nodes.AddRange(PopulateTreeCategory(1079));
+
+            GroupView.Nodes[5].Nodes[1].Nodes[0].Nodes.Add("Marauders");
+            GroupView.Nodes[5].Nodes[1].Nodes[0].Nodes[1].Nodes.Add("Amarr");
+            GroupView.Nodes[5].Nodes[1].Nodes[0].Nodes[1].Nodes[0].Nodes.AddRange(PopulateTreeCategory(1081));
+            GroupView.Nodes[5].Nodes[1].Nodes[0].Nodes[1].Nodes.Add("Caldari");
+            GroupView.Nodes[5].Nodes[1].Nodes[0].Nodes[1].Nodes[1].Nodes.AddRange(PopulateTreeCategory(1082));
+            GroupView.Nodes[5].Nodes[1].Nodes[0].Nodes[1].Nodes.Add("Gallente");
+            GroupView.Nodes[5].Nodes[1].Nodes[0].Nodes[1].Nodes[2].Nodes.AddRange(PopulateTreeCategory(1083));
+            GroupView.Nodes[5].Nodes[1].Nodes[0].Nodes[1].Nodes.Add("Minmatar");
+            GroupView.Nodes[5].Nodes[1].Nodes[0].Nodes[1].Nodes[3].Nodes.AddRange(PopulateTreeCategory(1084));
+            #endregion
+            #region CapitalShips
+            GroupView.Nodes[5].Nodes[2].Nodes.Add("Capital Industrial Ships");
+            GroupView.Nodes[5].Nodes[2].Nodes[0].Nodes.AddRange(PopulateTreeCategory(1048));
+            GroupView.Nodes[5].Nodes[2].Nodes.Add("Carriers");
+            GroupView.Nodes[5].Nodes[2].Nodes.Add("Dreadnoughts");
+            GroupView.Nodes[5].Nodes[2].Nodes.Add("Freighters");
+            GroupView.Nodes[5].Nodes[2].Nodes.Add("Jump frighters");
+            GroupView.Nodes[5].Nodes[2].Nodes.Add("Titans");
+
+            //carrier
+            GroupView.Nodes[5].Nodes[2].Nodes[1].Nodes.Add("Amarr");
+            GroupView.Nodes[5].Nodes[2].Nodes[1].Nodes[0].Nodes.AddRange(PopulateTreeCategory(818));
+            GroupView.Nodes[5].Nodes[2].Nodes[1].Nodes.Add("Caldari");
+            GroupView.Nodes[5].Nodes[2].Nodes[1].Nodes[1].Nodes.AddRange(PopulateTreeCategory(819));
+            GroupView.Nodes[5].Nodes[2].Nodes[1].Nodes.Add("Faction Carrier");
+            GroupView.Nodes[5].Nodes[2].Nodes[1].Nodes[2].Nodes.AddRange(PopulateTreeCategory(1392));
+            GroupView.Nodes[5].Nodes[2].Nodes[1].Nodes.Add("Gallente");
+            GroupView.Nodes[5].Nodes[2].Nodes[1].Nodes[3].Nodes.AddRange(PopulateTreeCategory(820));
+            GroupView.Nodes[5].Nodes[2].Nodes[1].Nodes.Add("Minmatar");
+            GroupView.Nodes[5].Nodes[2].Nodes[1].Nodes[4].Nodes.AddRange(PopulateTreeCategory(821));
+
+            //dread
+            GroupView.Nodes[5].Nodes[2].Nodes[2].Nodes.Add("Amarr");
+            GroupView.Nodes[5].Nodes[2].Nodes[2].Nodes[0].Nodes.AddRange(PopulateTreeCategory(762));
+            GroupView.Nodes[5].Nodes[2].Nodes[2].Nodes.Add("Caldari");
+            GroupView.Nodes[5].Nodes[2].Nodes[2].Nodes[1].Nodes.AddRange(PopulateTreeCategory(763));
+            GroupView.Nodes[5].Nodes[2].Nodes[2].Nodes.Add("Gallente");
+            GroupView.Nodes[5].Nodes[2].Nodes[2].Nodes[2].Nodes.AddRange(PopulateTreeCategory(764));
+            GroupView.Nodes[5].Nodes[2].Nodes[2].Nodes.Add("Minmatar");
+            GroupView.Nodes[5].Nodes[2].Nodes[2].Nodes[3].Nodes.AddRange(PopulateTreeCategory(765));
+
+            //frighter
+            GroupView.Nodes[5].Nodes[2].Nodes[3].Nodes.Add("Amarr");
+            GroupView.Nodes[5].Nodes[2].Nodes[3].Nodes[0].Nodes.AddRange(PopulateTreeCategory(767));
+            GroupView.Nodes[5].Nodes[2].Nodes[3].Nodes.Add("Caldari");
+            GroupView.Nodes[5].Nodes[2].Nodes[3].Nodes[1].Nodes.AddRange(PopulateTreeCategory(768));
+            GroupView.Nodes[5].Nodes[2].Nodes[3].Nodes.Add("Gallente");
+            GroupView.Nodes[5].Nodes[2].Nodes[3].Nodes[2].Nodes.AddRange(PopulateTreeCategory(769));
+            GroupView.Nodes[5].Nodes[2].Nodes[3].Nodes.Add("Minmatar");
+            GroupView.Nodes[5].Nodes[2].Nodes[3].Nodes[3].Nodes.AddRange(PopulateTreeCategory(770));
+            GroupView.Nodes[5].Nodes[2].Nodes[3].Nodes.Add("Ore");
+            GroupView.Nodes[5].Nodes[2].Nodes[3].Nodes[4].Nodes.AddRange(PopulateTreeCategory(1950));
+
+            //jump frighter
+            GroupView.Nodes[5].Nodes[2].Nodes[4].Nodes.Add("Amarr");
+            GroupView.Nodes[5].Nodes[2].Nodes[4].Nodes[0].Nodes.AddRange(PopulateTreeCategory(1090));
+            GroupView.Nodes[5].Nodes[2].Nodes[4].Nodes.Add("Caldari");
+            GroupView.Nodes[5].Nodes[2].Nodes[4].Nodes[1].Nodes.AddRange(PopulateTreeCategory(1091));
+            GroupView.Nodes[5].Nodes[2].Nodes[4].Nodes.Add("Gallente");
+            GroupView.Nodes[5].Nodes[2].Nodes[4].Nodes[2].Nodes.AddRange(PopulateTreeCategory(1092));
+            GroupView.Nodes[5].Nodes[2].Nodes[4].Nodes.Add("Minmatar");
+            GroupView.Nodes[5].Nodes[2].Nodes[4].Nodes[3].Nodes.AddRange(PopulateTreeCategory(1093));
+
+            //titans
+            GroupView.Nodes[5].Nodes[2].Nodes[5].Nodes.Add("Amarr");
+            GroupView.Nodes[5].Nodes[2].Nodes[5].Nodes[0].Nodes.AddRange(PopulateTreeCategory(813));
+            GroupView.Nodes[5].Nodes[2].Nodes[5].Nodes.Add("Caldari");
+            GroupView.Nodes[5].Nodes[2].Nodes[5].Nodes[1].Nodes.AddRange(PopulateTreeCategory(814));
+            GroupView.Nodes[5].Nodes[2].Nodes[5].Nodes.Add("Gallente");
+            GroupView.Nodes[5].Nodes[2].Nodes[5].Nodes[2].Nodes.AddRange(PopulateTreeCategory(815));
+            GroupView.Nodes[5].Nodes[2].Nodes[5].Nodes.Add("Minmatar");
+            GroupView.Nodes[5].Nodes[2].Nodes[5].Nodes[3].Nodes.AddRange(PopulateTreeCategory(816));
+            #endregion
+            #region Cruisers
+
+            #endregion
+            #region Destroyers
+
+            #endregion
+            #region Frigates
+
+            #endregion
+            #region IndustrualShips
+
+            #endregion
+            #region MiningBarges
+            GroupView.Nodes[5].Nodes[7].Nodes.Add("Exhumers");
+            GroupView.Nodes[5].Nodes[7].Nodes[0].Nodes.AddRange(PopulateTreeCategory(874));
+            GroupView.Nodes[5].Nodes[7].Nodes.Add("Mining Barges");
+            GroupView.Nodes[5].Nodes[7].Nodes[1].Nodes.AddRange(PopulateTreeCategory(494));
+            #endregion
+            #region Shuttles
+            GroupView.Nodes[5].Nodes[8].Nodes.Add("Amarr");
+            GroupView.Nodes[5].Nodes[8].Nodes[0].Nodes.AddRange(PopulateTreeCategory(393));
+            GroupView.Nodes[5].Nodes[8].Nodes.Add("Caldari");
+            GroupView.Nodes[5].Nodes[8].Nodes[1].Nodes.AddRange(PopulateTreeCategory(394));
+            GroupView.Nodes[5].Nodes[8].Nodes.Add("Faction Shuttles");
+            GroupView.Nodes[5].Nodes[8].Nodes[2].Nodes.AddRange(PopulateTreeCategory(1631));
+            GroupView.Nodes[5].Nodes[8].Nodes.Add("Gallente");
+            GroupView.Nodes[5].Nodes[8].Nodes[3].Nodes.AddRange(PopulateTreeCategory(395));
+            GroupView.Nodes[5].Nodes[8].Nodes.Add("Minmatar");
+            GroupView.Nodes[5].Nodes[8].Nodes[4].Nodes.AddRange(PopulateTreeCategory(396));
+            #endregion
+            #endregion
+
+            //structures
+            #region Structures
+            //TODO finish this
+            #endregion
+        }
+
+        TreeNode[] PopulateTreeCategory(int marketID)
+        {
+            if (items == null)
+            {
+                TreeNode[] fail = new TreeNode[1];
+                fail[0] = new TreeNode("Not Ready");
+                return fail;
+            }
+
+            TreeNode[] output = new TreeNode[1];
+            int j = 0;
+            foreach (Item thing in items)
+            {
+                if (thing.getMarketGroupID() == marketID)
+                {
+                    TreeNode[] temp = new TreeNode[j + 1];
+                    for (int u = 0; u <= j - 1; ++u)
+                    {
+                        temp[u] = output[u];
+                    }
+
+                    temp[j] = new TreeNode(thing.getName());
+                    output = temp;
+
+                    ++j;
+                }
+            }
+
+            if(output[0] == null)
+            {
+                output[0] = new TreeNode("Incorrect DATA");
+            }
+
+            return output;
         }
 
         public void populateShoppingCart(Item item)
         {
             //update shopping list
             //shoppingList = getItemMaterials(item, shoppingList);
-            shoppingList = getItemMaterials(item.getProdMats(), shoppingList);
+            shoppingList = MerdgeItemMaterials(item.getProdMats(), shoppingList);
 
             Int64[,,] price = new Int64[5, (shoppingList.Length / 2), 1];
             int items = 0;
@@ -1184,7 +1505,7 @@ namespace EvE_Build
             return RemoveZero(output);
         }
 
-        private Int64[,] getItemMaterials(Int64[,] dataset1, Int64[,] dataSet2)
+        private Int64[,] MerdgeItemMaterials(Int64[,] dataset1, Int64[,] dataSet2)
         {
             if (dataSet2 == null)
             {

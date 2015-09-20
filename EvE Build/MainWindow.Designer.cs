@@ -57,6 +57,7 @@
             this.ManufacturingTable = new System.Windows.Forms.DataGridView();
             this.Overview = new System.Windows.Forms.TabPage();
             this.splitContainer5 = new System.Windows.Forms.SplitContainer();
+            this.OverviewRigs = new System.Windows.Forms.CheckBox();
             this.OverviewFaction = new System.Windows.Forms.CheckBox();
             this.OverviewStart = new System.Windows.Forms.Button();
             this.label2 = new System.Windows.Forms.Label();
@@ -307,6 +308,11 @@
             // RunSelect
             // 
             this.RunSelect.Location = new System.Drawing.Point(203, 60);
+            this.RunSelect.Maximum = new decimal(new int[] {
+            1000000,
+            0,
+            0,
+            0});
             this.RunSelect.Minimum = new decimal(new int[] {
             1,
             0,
@@ -423,7 +429,6 @@
             this.ManufacturingTable.RowTemplate.Height = 18;
             this.ManufacturingTable.Size = new System.Drawing.Size(725, 163);
             this.ManufacturingTable.TabIndex = 0;
-            this.ManufacturingTable.CellContentClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.ManufacturingTable_CellContentClick);
             // 
             // Overview
             // 
@@ -445,6 +450,7 @@
             // 
             // splitContainer5.Panel1
             // 
+            this.splitContainer5.Panel1.Controls.Add(this.OverviewRigs);
             this.splitContainer5.Panel1.Controls.Add(this.OverviewFaction);
             this.splitContainer5.Panel1.Controls.Add(this.OverviewStart);
             this.splitContainer5.Panel1.Controls.Add(this.label2);
@@ -458,6 +464,18 @@
             this.splitContainer5.Size = new System.Drawing.Size(725, 478);
             this.splitContainer5.SplitterDistance = 26;
             this.splitContainer5.TabIndex = 1;
+            // 
+            // OverviewRigs
+            // 
+            this.OverviewRigs.AutoSize = true;
+            this.OverviewRigs.Checked = true;
+            this.OverviewRigs.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.OverviewRigs.Location = new System.Drawing.Point(384, 5);
+            this.OverviewRigs.Name = "OverviewRigs";
+            this.OverviewRigs.Size = new System.Drawing.Size(80, 17);
+            this.OverviewRigs.TabIndex = 6;
+            this.OverviewRigs.Text = "Ignore Rigs";
+            this.OverviewRigs.UseVisualStyleBackColor = true;
             // 
             // OverviewFaction
             // 
@@ -623,7 +641,7 @@
             this.itemSelectAll.FormattingEnabled = true;
             this.itemSelectAll.Location = new System.Drawing.Point(0, 0);
             this.itemSelectAll.Name = "itemSelectAll";
-            this.itemSelectAll.Size = new System.Drawing.Size(144, 445);
+            this.itemSelectAll.Size = new System.Drawing.Size(144, 449);
             this.itemSelectAll.TabIndex = 0;
             this.itemSelectAll.SelectedIndexChanged += new System.EventHandler(this.itemSelectAll_SelectedIndexChanged);
             // 
@@ -665,7 +683,7 @@
             // 
             this.splitContainer3.Panel2.Controls.Add(this.itemSelectAll);
             this.splitContainer3.Size = new System.Drawing.Size(144, 478);
-            this.splitContainer3.SplitterDistance = 29;
+            this.splitContainer3.SplitterDistance = 25;
             this.splitContainer3.TabIndex = 0;
             // 
             // searchBox
@@ -696,6 +714,7 @@
             this.GroupView.Name = "GroupView";
             this.GroupView.Size = new System.Drawing.Size(144, 478);
             this.GroupView.TabIndex = 0;
+            this.GroupView.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.GroupView_AfterSelect);
             // 
             // splitContainer1
             // 
@@ -905,6 +924,7 @@
         public System.Windows.Forms.Label ItemVolume;
         public System.Windows.Forms.Label MaterialVolume;
         public System.Windows.Forms.CheckBox BaseMaterials;
+        private System.Windows.Forms.CheckBox OverviewRigs;
     }
 }
 

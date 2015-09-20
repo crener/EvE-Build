@@ -19,13 +19,6 @@ namespace EvE_Build_UI
             InitializeComponent();
 
             workhorse = new Calculation(itemSelectAll,
-        MEL,
-        TEL,
-        ItemVolume,
-        maxRuns,
-        DisplayName,
-        DisplayType,
-        DisplayBType,
         BpoCost,
         RunsToPay,
         MaterialVolume,
@@ -40,14 +33,55 @@ namespace EvE_Build_UI
         ProfitView,
         ShoppingCart,
         RunSelect,
-        littleMinion);
+        littleMinion,
+        GroupView);
+        }
+
+        void UpdateManufacturing()
+        {
+            //figure out what item the player want too see
+
+            int itemIndex = -1;
+
+            //all item tab
+            if (ItemTabs.SelectedIndex == 0 && itemSelectAll.Items.Count != 0)
+            {
+                itemIndex = workhorse.NametoItemIndex(itemSelectAll.SelectedItem.ToString());
+                if (itemIndex == -1)
+                {
+                    //item doesn't exist
+                    return;
+                }
+            }
+            //group item tab
+            else if (GroupView.SelectedNode != null && GroupView.SelectedNode.Nodes.Count == 0)
+            {
+                itemIndex = workhorse.NametoItemIndex(GroupView.SelectedNode.Text);
+                if (itemIndex == -1)
+                {
+                    //item doesn't exist
+                    return;
+                }
+
+            }
+            //update labels
+            MEL.Text = "ME Level: " + MESlider.Value;
+            TEL.Text = "TE Level: " + TESlider.Value;
+            ItemVolume.Text = (workhorse.items[itemIndex].getVolume() * Convert.ToInt32(RunSelect.Value)) + " m3";
+            maxRuns.Text = "Maximum runs: " + workhorse.items[itemIndex].getProdLmt();
+
+            DisplayName.Text = workhorse.items[itemIndex].getName();
+            DisplayType.Text = "ID" + workhorse.items[itemIndex].getTypeID().ToString();
+            DisplayBType.Text = "B" + workhorse.items[itemIndex].getBlueprintTypeID().ToString();
+
+            workhorse.WorkOutData(itemIndex);
         }
 
         #region formStuff
         private void itemSelectAll_SelectedIndexChanged(object sender, EventArgs e)
         {
             RunSelect.Value = 1;
-            workhorse.WorkOutData();
+            UpdateManufacturing();
         }
 
         private void searchBox_TextChanged(object sender, EventArgs e)
@@ -118,12 +152,12 @@ namespace EvE_Build_UI
 
         private void MESlider_Scroll(object sender, EventArgs e)
         {
-            workhorse.WorkOutData();
+            UpdateManufacturing();
         }
 
         private void TESlider_Scroll(object sender, EventArgs e)
         {
-            workhorse.WorkOutData();
+            UpdateManufacturing();
         }
 
         private void OverviewStart_Click(object sender, EventArgs e)
@@ -297,7 +331,7 @@ namespace EvE_Build_UI
         private void tabPage2_Open(object sender, EventArgs e)
         {
             //format the treeview if it is the first time opeining it since program start
-            if (GroupView.Nodes.Count == 0)
+            if (GroupView.Nodes.Count == 0 && workhorse.items != null)
             {
                 workhorse.SetupTreeView();
             }
@@ -305,12 +339,12 @@ namespace EvE_Build_UI
 
         private void sellorBuyCheck_CheckedChanged(object sender, EventArgs e)
         {
-            workhorse.WorkOutData();
+            UpdateManufacturing();
         }
 
         private void RunSelect_ValueChanged(object sender, EventArgs e)
         {
-            workhorse.WorkOutData();
+            UpdateManufacturing();
         }
 
         private void AddShoppingMaterials_Click(object sender, EventArgs e)
@@ -328,14 +362,15 @@ namespace EvE_Build_UI
             workhorse.EmptyShoppingCart();
         }
 
-        private void ManufacturingTable_CellContentClick(object sender, DataGridViewCellEventArgs e)
-        {
-
-        }
-
         private void BaseMaterials_CheckedChanged(object sender, EventArgs e)
         {
-            workhorse.WorkOutData();
+            UpdateManufacturing();
+        }
+
+        private void GroupView_AfterSelect(object sender, TreeViewEventArgs e)
+        {
+            RunSelect.Value = 1;
+            UpdateManufacturing();
         }
         #endregion
     }
