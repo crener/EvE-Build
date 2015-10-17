@@ -2,7 +2,7 @@
 using System.Windows.Forms;
 using System.IO;
 
-namespace EvE_Build
+namespace EvE_Build_UI
 {
     public partial class Options : Form
     {
@@ -82,7 +82,14 @@ namespace EvE_Build
         {
             try
             {
-                stationIds[0] = Int32.Parse(Station1ID.Text.ToString());
+                if (Station1ID.Text == null)
+                {
+                    stationIds[0] = 0;
+                }
+                else
+                {
+                    stationIds[0] = Int32.Parse(Station1ID.Text.ToString());
+                }
                 save();
             }
             catch (Exception)
@@ -95,7 +102,14 @@ namespace EvE_Build
         {
             try
             {
-                stationIds[1] = Int32.Parse(Station2ID.Text.ToString());
+                if (Station2ID.Text == null)
+                {
+                    stationIds[1] = 0;
+                }
+                else
+                {
+                    stationIds[1] = Int32.Parse(Station2ID.Text.ToString());
+                }
                 save();
             }
             catch (Exception)
@@ -108,7 +122,14 @@ namespace EvE_Build
         {
             try
             {
-                stationIds[2] = Int32.Parse(Station3ID.Text.ToString());
+                if (Station3ID.Text == null)
+                {
+                    stationIds[2] = 0;
+                }
+                else
+                {
+                    stationIds[2] = Int32.Parse(Station3ID.Text.ToString());
+                }
                 save();
             }
             catch (Exception)
@@ -121,7 +142,14 @@ namespace EvE_Build
         {
             try
             {
-                stationIds[3] = Int32.Parse(Station4ID.Text.ToString());
+                if (Station4ID.Text == null)
+                {
+                    stationIds[3] = 0;
+                }
+                else
+                {
+                    stationIds[3] = Int32.Parse(Station4ID.Text.ToString());
+                }
                 save();
             }
             catch (Exception)
@@ -134,8 +162,15 @@ namespace EvE_Build
         {
             try
             {
-                stationIds[4] = Int32.Parse(Station5ID.Text.ToString());
-                save();
+                if (Station5ID.Text == null)
+                {
+                    stationIds[4] = 0;
+                }
+                else
+                {
+                    stationIds[4] = Int32.Parse(Station5ID.Text.ToString());
+                }
+                    save();
             }
             catch (Exception)
             {

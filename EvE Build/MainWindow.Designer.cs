@@ -71,6 +71,10 @@
             this.label4 = new System.Windows.Forms.Label();
             this.ExportCart = new System.Windows.Forms.Button();
             this.ShoppingCart = new System.Windows.Forms.DataGridView();
+            this.GroupViewOverview = new System.Windows.Forms.TabPage();
+            this.splitContainer7 = new System.Windows.Forms.SplitContainer();
+            this.GroupViewFaction = new System.Windows.Forms.CheckBox();
+            this.GridViewDataView = new System.Windows.Forms.DataGridView();
             this.itemSelectAll = new System.Windows.Forms.ListBox();
             this.ItemTabs = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
@@ -111,6 +115,12 @@
             this.splitContainer6.Panel2.SuspendLayout();
             this.splitContainer6.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.ShoppingCart)).BeginInit();
+            this.GroupViewOverview.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.splitContainer7)).BeginInit();
+            this.splitContainer7.Panel1.SuspendLayout();
+            this.splitContainer7.Panel2.SuspendLayout();
+            this.splitContainer7.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.GridViewDataView)).BeginInit();
             this.ItemTabs.SuspendLayout();
             this.tabPage1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer3)).BeginInit();
@@ -135,6 +145,7 @@
             this.TabControl.Controls.Add(this.TabManufacture);
             this.TabControl.Controls.Add(this.Overview);
             this.TabControl.Controls.Add(this.ShopingTab);
+            this.TabControl.Controls.Add(this.GroupViewOverview);
             this.TabControl.Dock = System.Windows.Forms.DockStyle.Fill;
             this.TabControl.Location = new System.Drawing.Point(0, 0);
             this.TabControl.Name = "TabControl";
@@ -635,6 +646,56 @@
             this.ShoppingCart.Size = new System.Drawing.Size(725, 431);
             this.ShoppingCart.TabIndex = 0;
             // 
+            // GroupViewOverview
+            // 
+            this.GroupViewOverview.Controls.Add(this.splitContainer7);
+            this.GroupViewOverview.Location = new System.Drawing.Point(4, 22);
+            this.GroupViewOverview.Name = "GroupViewOverview";
+            this.GroupViewOverview.Padding = new System.Windows.Forms.Padding(3);
+            this.GroupViewOverview.Size = new System.Drawing.Size(731, 484);
+            this.GroupViewOverview.TabIndex = 3;
+            this.GroupViewOverview.Text = "Group Summary";
+            this.GroupViewOverview.UseVisualStyleBackColor = true;
+            // 
+            // splitContainer7
+            // 
+            this.splitContainer7.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.splitContainer7.Location = new System.Drawing.Point(3, 3);
+            this.splitContainer7.Name = "splitContainer7";
+            this.splitContainer7.Orientation = System.Windows.Forms.Orientation.Horizontal;
+            // 
+            // splitContainer7.Panel1
+            // 
+            this.splitContainer7.Panel1.Controls.Add(this.GroupViewFaction);
+            // 
+            // splitContainer7.Panel2
+            // 
+            this.splitContainer7.Panel2.Controls.Add(this.GridViewDataView);
+            this.splitContainer7.Size = new System.Drawing.Size(725, 478);
+            this.splitContainer7.SplitterDistance = 25;
+            this.splitContainer7.TabIndex = 0;
+            // 
+            // GroupViewFaction
+            // 
+            this.GroupViewFaction.AutoSize = true;
+            this.GroupViewFaction.Location = new System.Drawing.Point(3, 2);
+            this.GroupViewFaction.Name = "GroupViewFaction";
+            this.GroupViewFaction.Size = new System.Drawing.Size(132, 17);
+            this.GroupViewFaction.TabIndex = 0;
+            this.GroupViewFaction.Text = "Remove Faction Items";
+            this.GroupViewFaction.UseVisualStyleBackColor = true;
+            this.GroupViewFaction.CheckedChanged += new System.EventHandler(this.GroupViewFaction_CheckedChanged);
+            // 
+            // GridViewDataView
+            // 
+            this.GridViewDataView.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.GridViewDataView.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.GridViewDataView.Location = new System.Drawing.Point(0, 0);
+            this.GridViewDataView.Name = "GridViewDataView";
+            this.GridViewDataView.RowHeadersWidth = 21;
+            this.GridViewDataView.Size = new System.Drawing.Size(725, 449);
+            this.GridViewDataView.TabIndex = 0;
+            // 
             // itemSelectAll
             // 
             this.itemSelectAll.Dock = System.Windows.Forms.DockStyle.Fill;
@@ -840,6 +901,13 @@
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer6)).EndInit();
             this.splitContainer6.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.ShoppingCart)).EndInit();
+            this.GroupViewOverview.ResumeLayout(false);
+            this.splitContainer7.Panel1.ResumeLayout(false);
+            this.splitContainer7.Panel1.PerformLayout();
+            this.splitContainer7.Panel2.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.splitContainer7)).EndInit();
+            this.splitContainer7.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.GridViewDataView)).EndInit();
             this.ItemTabs.ResumeLayout(false);
             this.tabPage1.ResumeLayout(false);
             this.splitContainer3.Panel1.ResumeLayout(false);
@@ -925,6 +993,10 @@
         public System.Windows.Forms.Label MaterialVolume;
         public System.Windows.Forms.CheckBox BaseMaterials;
         private System.Windows.Forms.CheckBox OverviewRigs;
+        private System.Windows.Forms.TabPage GroupViewOverview;
+        private System.Windows.Forms.SplitContainer splitContainer7;
+        private System.Windows.Forms.CheckBox GroupViewFaction;
+        private System.Windows.Forms.DataGridView GridViewDataView;
     }
 }
 

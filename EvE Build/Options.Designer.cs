@@ -1,4 +1,4 @@
-﻿namespace EvE_Build
+﻿namespace EvE_Build_UI
 {
     partial class Options
     {

@@ -6,7 +6,7 @@ namespace EvE_Build
 {
     public class YAML
     {
-        int[] blacklist = new int[80];
+        int[] blacklist = new int[79];
         YamlStream blue, name;
 
         public YAML()
@@ -90,8 +90,7 @@ namespace EvE_Build
             blacklist[75] = 681;
             blacklist[76] = 682;
             blacklist[77] = 3927;
-            blacklist[78] = 23736;
-            blacklist[79] = 935;
+            blacklist[78] = 935;
             #endregion
 
             StreamReader file = new StreamReader("StaticData/blueprints.Yaml");

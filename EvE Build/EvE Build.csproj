@@ -92,6 +92,12 @@
     <Compile Include="Options.Designer.cs">
       <DependentUpon>Options.cs</DependentUpon>
     </Compile>
+    <Compile Include="Ore Calculator.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Ore Calculator.Designer.cs">
+      <DependentUpon>Ore Calculator.cs</DependentUpon>
+    </Compile>
     <Compile Include="Program.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -104,6 +110,9 @@
     <EmbeddedResource Include="Options.resx">
       <DependentUpon>Options.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="Ore Calculator.resx">
+      <DependentUpon>Ore Calculator.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
@@ -113,8 +122,6 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <None Include="ClassDiagram1.cd" />
-    <None Include="EvE Build_TemporaryKey.pfx" />
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>

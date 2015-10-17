@@ -19,7 +19,6 @@ namespace EvE_Build_UI
             InitializeComponent();
 
             workhorse = new Calculation(itemSelectAll,
-        BpoCost,
         RunsToPay,
         MaterialVolume,
         MESlider,
@@ -54,21 +53,32 @@ namespace EvE_Build_UI
                 }
             }
             //group item tab
-            else if (GroupView.SelectedNode != null && GroupView.SelectedNode.Nodes.Count == 0)
+            else if (ItemTabs.SelectedIndex == 1 && GroupView.SelectedNode != null)
             {
-                itemIndex = workhorse.NametoItemIndex(GroupView.SelectedNode.Text);
-                if (itemIndex == -1)
+                if (GroupView.SelectedNode.Nodes.Count == 0)
                 {
-                    //item doesn't exist
+                    itemIndex = workhorse.NametoItemIndex(GroupView.SelectedNode.Text);
+                }
+                else if (GroupView.SelectedNode.Nodes.Count != 0 || GroupView.SelectedNode == null)
+                {
+                    //empty node selected
                     return;
                 }
-
             }
+
+            if (itemIndex == -1)
+            {
+                //item doesn't exist
+                return;
+            }
+
             //update labels
             MEL.Text = "ME Level: " + MESlider.Value;
             TEL.Text = "TE Level: " + TESlider.Value;
-            ItemVolume.Text = (workhorse.items[itemIndex].getVolume() * Convert.ToInt32(RunSelect.Value)) + " m3";
+            ItemVolume.Text = (workhorse.items[itemIndex].getVolume() * 
+                (Convert.ToInt32(RunSelect.Value) * workhorse.items[itemIndex].getProdQty())) + " m3";
             maxRuns.Text = "Maximum runs: " + workhorse.items[itemIndex].getProdLmt();
+            BpoCost.Text = workhorse.format(workhorse.items[itemIndex].getBlueprintPrice().ToString()) + " isk";
 
             DisplayName.Text = workhorse.items[itemIndex].getName();
             DisplayType.Text = "ID" + workhorse.items[itemIndex].getTypeID().ToString();
@@ -77,7 +87,6 @@ namespace EvE_Build_UI
             workhorse.WorkOutData(itemIndex);
         }
 
-        #region formStuff
         private void itemSelectAll_SelectedIndexChanged(object sender, EventArgs e)
         {
             RunSelect.Value = 1;
@@ -190,9 +199,10 @@ namespace EvE_Build_UI
             Int64 bestIskHr = new Int64();
             float bestRatio = new float();
             bool faction = OverviewFaction.Checked;
-            string[] factions = new string[46];
             bool invalid = false;
-
+            string[] factions = new string[46],
+                rigs = new string[3];
+            #region faction
             factions[0] = "Navy";
             factions[1] = "Shadow";
             factions[2] = "ORE";
@@ -242,6 +252,11 @@ namespace EvE_Build_UI
             factions[39] = "Shaqil";
             factions[44] = "Digital";
             factions[45] = "Analog";
+            #endregion
+            #region rig
+            //TODO figure out how to seperate rigs from all other items in overview,
+            //posibly using market IDs or group IDs
+            #endregion
 
             foreach (Item current in workhorse.items)
             {
@@ -264,6 +279,10 @@ namespace EvE_Build_UI
                             invalid = true;
                         }
                     }
+                }
+                else if (OverviewRigs.Checked && current.getName() != null)
+                {
+
                 }
 
                 if (invalid)
@@ -369,9 +388,26 @@ namespace EvE_Build_UI
 
         private void GroupView_AfterSelect(object sender, TreeViewEventArgs e)
         {
-            RunSelect.Value = 1;
-            UpdateManufacturing();
+            if (GroupView.SelectedNode.Nodes.Count == 0) {
+                RunSelect.Value = 1;
+                UpdateManufacturing();
+            }
+            else
+            {
+                GridViewDataView.DataSource = workhorse.GroupComparison(
+                    workhorse.GatherObjectsFromGroupView(GroupView.SelectedNode, new int[0], GroupViewFaction.Checked), 10);
+            }
         }
-        #endregion
+
+        private void GroupViewFaction_CheckedChanged(object sender, EventArgs e)
+        {
+            if (GroupView.SelectedNode.Nodes.Count != 0 &&
+                workhorse.items != null)
+            {
+                GridViewDataView.DataSource = workhorse.GroupComparison(
+                    workhorse.GatherObjectsFromGroupView(
+                        GroupView.SelectedNode, new int[0], GroupViewFaction.Checked), 10);
+            }
+        }
     }
 }

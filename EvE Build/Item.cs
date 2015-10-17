@@ -44,7 +44,6 @@ namespace EvE_Build
             this.typeID = typeID;
             this.blueprintID = blueprintID;
         }
-
         public void setBuySell(Int64[] pricing, int station)
         {
             sellCost[station] = pricing[2];
