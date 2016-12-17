@@ -93,7 +93,7 @@ namespace EvE_Build
             blacklist[78] = 935;
             #endregion
 
-            StreamReader file = new StreamReader("StaticData/blueprints.Yaml");
+            StreamReader file = new StreamReader("StaticData/blueprints.yaml");
             blue = new YamlStream();
             blue.Load(file);
             file.Close();
@@ -143,7 +143,7 @@ namespace EvE_Build
                     //invID = 0,
                     //invQty = 1,
                     //invTime = 0;
-                int[,] prodMats = new int[20, 2],
+                int[,] prodMats = new int[30, 2],
                     invMats = new int[6, 2],
                     copyMats = new int[5, 2],
                     prodskills = new int[8, 2],
@@ -829,9 +829,8 @@ namespace EvE_Build
                     {
                         var item = (YamlMappingNode)map.Children[entry.Key];
                         YamlNode nameNode = new YamlScalarNode("name");
-                        var name = (YamlMappingNode)item.Children[nameNode];
 
-                        foreach (var langName in name)
+                        foreach (var langName in (YamlMappingNode)item.Children[nameNode])
                         {
                             if ((langName.Key).ToString() == language)
                             {

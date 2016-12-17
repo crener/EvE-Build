@@ -8,15 +8,15 @@ namespace EvE_Build
 {
     class WebInterface
     {
-        public string getWebData(int stationID, int item)
+        public string getWebData(int stationId, int item)
         {
-            if (stationID == 0)
+            if (stationId == 0)
             {
                 //no point wasting time if there is no station to check
                 return "";
             }
 
-            string search = "http://api.eve-central.com/api/marketstat?&usesystem=" + stationID + "&typeid=" + item;
+            string search = "http://api.eve-central.com/api/marketstat?&usesystem=" + stationId + "&typeid=" + item;
 
             HttpWebRequest myRequest = (HttpWebRequest)WebRequest.Create(search);
             myRequest.Method = "GET";
@@ -43,7 +43,7 @@ namespace EvE_Build
         public string getWebData(int stationID, int[] item)
         {
 
-            if (stationID == 0)
+            if (stationID == 0 || item.Length <= 0)
             {
                 //no point wasting time if there is no station to check
                 return "";
@@ -135,8 +135,6 @@ namespace EvE_Build
                 Int64[,] output = new Int64[item.Length, 2];
                 string temp = "";
 
-                //while (reader.Read() && count < target)
-                //while (count < target && reader.Name != "")
                 for (int i = 0; i < item.Length; ++i)
                 {
 
@@ -188,10 +186,6 @@ namespace EvE_Build
                 //while (count < target && reader.Name != "")
                 for (int i = 0; i < item.Length - 1; ++i)
                 {
-
-                    //TODO remove the dot from the returned value to ensure that the point is carried (int64 doesn't support decimals)
-                    //TODO make sure that every time the user is given the cost values a dot is added for 0.xx isk
-
                     //check that the correct item is being read
                     reader.ReadToFollowing("type");
                     reader.MoveToFirstAttribute();

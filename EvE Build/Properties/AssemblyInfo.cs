@@ -37,4 +37,5 @@ using System.Runtime.InteropServices;
 [assembly: InternalsVisibleTo("EvE Build.Tests")]
 [assembly: InternalsVisibleTo("EvE Build.Explorables")]
 [assembly: InternalsVisibleTo("EvE Build.Tests1")]
+[assembly: InternalsVisibleTo("EvE Build.Tests2")]
 

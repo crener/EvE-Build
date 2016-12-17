@@ -1,18 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.23107.0
+VisualStudioVersion = 14.0.24720.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EvE Build", "EvE Build\EvE Build.csproj", "{2A08173E-CE13-403E-9F49-E7CFC8D63E5F}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EveCentralDataPuller", "EveCentralDataPuller\EveCentralDataPuller.csproj", "{56B63A4E-1C38-49C7-AF92-D69D8D6C7311}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YAMLImportTester", "YAMLImportTester\YAMLImportTester.csproj", "{F82C12B4-C2C5-4E44-B024-244538A2023B}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{2E5EB1BE-3482-41EE-AF62-A611A363C948}"
-	ProjectSection(SolutionItems) = preProject
-		CodeCoverage.runsettings = CodeCoverage.runsettings
-	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

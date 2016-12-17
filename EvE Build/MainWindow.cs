@@ -32,8 +32,7 @@ namespace EvE_Build_UI
         ProfitView,
         ShoppingCart,
         RunSelect,
-        littleMinion,
-        GroupView);
+        littleMinion);
         }
 
         void UpdateManufacturing()
@@ -75,14 +74,14 @@ namespace EvE_Build_UI
             //update labels
             MEL.Text = "ME Level: " + MESlider.Value;
             TEL.Text = "TE Level: " + TESlider.Value;
-            ItemVolume.Text = (workhorse.items[itemIndex].getVolume() * 
-                (Convert.ToInt32(RunSelect.Value) * workhorse.items[itemIndex].getProdQty())) + " m3";
-            maxRuns.Text = "Maximum runs: " + workhorse.items[itemIndex].getProdLmt();
-            BpoCost.Text = workhorse.format(workhorse.items[itemIndex].getBlueprintPrice().ToString()) + " isk";
+            ItemVolume.Text = (workhorse.Items[itemIndex].getVolume() *
+                (Convert.ToInt32(RunSelect.Value) * workhorse.Items[itemIndex].getProdQty())) + " m3";
+            maxRuns.Text = "Maximum runs: " + workhorse.Items[itemIndex].getProdLmt();
+            BpoCost.Text = workhorse.Format(workhorse.Items[itemIndex].getBlueprintPrice().ToString()) + " isk";
 
-            DisplayName.Text = workhorse.items[itemIndex].getName();
-            DisplayType.Text = "ID" + workhorse.items[itemIndex].getTypeID().ToString();
-            DisplayBType.Text = "B" + workhorse.items[itemIndex].getBlueprintTypeID().ToString();
+            DisplayName.Text = workhorse.Items[itemIndex].getName();
+            DisplayType.Text = "ID" + workhorse.Items[itemIndex].getTypeID().ToString();
+            DisplayBType.Text = "B" + workhorse.Items[itemIndex].getBlueprintTypeID().ToString();
 
             workhorse.WorkOutData(itemIndex);
         }
@@ -102,7 +101,7 @@ namespace EvE_Build_UI
                 return;
             }
 
-            if (workhorse.items == null)
+            if (workhorse.Items == null)
             {
                 return;
             }
@@ -119,7 +118,7 @@ namespace EvE_Build_UI
                 searchLow = searchBox.Text.First().ToString().ToLower() + String.Join("", searchBox.Text.Skip(1));
                 searchHigh = searchBox.Text.First().ToString().ToUpper() + String.Join("", searchBox.Text.Skip(1));
             }
-            foreach (var item in workhorse.items)
+            foreach (var item in workhorse.Items)
             {
                 if (item.getName() != null && item.getName().IndexOf(searchLow) >= 0)
                 {
@@ -138,11 +137,11 @@ namespace EvE_Build_UI
         private void MainWindow_Load(object sender, EventArgs e)
         {
             //start going though the yaml files to get data
-            littleMinion = new Thread(workhorse.populateItemList);
+            littleMinion = new Thread(workhorse.PopulateItemList);
             littleMinion.Name = "LittleMinion - Populate item list";
             littleMinion.Start();
 
-            workhorse.littleMinionStart(littleMinion);
+            workhorse.LittleMinionStart(littleMinion);
         }
 
         private void MainWindow_Close(object sender, System.ComponentModel.CancelEventArgs e)
@@ -200,7 +199,7 @@ namespace EvE_Build_UI
             float bestRatio = new float();
             bool faction = OverviewFaction.Checked;
             bool invalid = false;
-            string[] factions = new string[46],
+            string[] factions = new string[47],
                 rigs = new string[3];
             #region faction
             factions[0] = "Navy";
@@ -220,6 +219,7 @@ namespace EvE_Build_UI
             factions[41] = "Sisters";
             factions[40] = "Domination";
             factions[42] = "Angel";
+            factions[46] = "CONCORD";
 
             factions[43] = "Compressed";
 
@@ -258,7 +258,7 @@ namespace EvE_Build_UI
             //posibly using market IDs or group IDs
             #endregion
 
-            foreach (Item current in workhorse.items)
+            foreach (Item current in workhorse.Items)
             {
                 //check for faction stuff
                 if (faction && current.getName() != null)
@@ -272,7 +272,7 @@ namespace EvE_Build_UI
                         invalid = true;
                     }
 
-                    for (int i = 0; i <= factions.Length - 1 && invalid == false; ++i)
+                    for (int i = 0; i < factions.Length && invalid == false; ++i)
                     {
                         if (current.getName().Contains(factions[i]))
                         {
@@ -292,7 +292,7 @@ namespace EvE_Build_UI
                 }
 
                 //ensure item isn't chinese
-                if (current.getName() == "" || workhorse.checkAlphanumeric(current.getName()) == false)
+                if (current.getName() == "" || workhorse.CheckAlphanumeric(current.getName()) == false)
                 {
                     continue;
                 }
@@ -350,9 +350,10 @@ namespace EvE_Build_UI
         private void tabPage2_Open(object sender, EventArgs e)
         {
             //format the treeview if it is the first time opeining it since program start
-            if (GroupView.Nodes.Count == 0 && workhorse.items != null)
+            if (GroupView.Nodes.Count == 0 && workhorse.Items != null)
             {
-                workhorse.SetupTreeView();
+                GroupView = workhorse.SetupTreeView(ref GroupView);
+                //GroupView.Refresh();
             }
         }
 
@@ -368,11 +369,11 @@ namespace EvE_Build_UI
 
         private void AddShoppingMaterials_Click(object sender, EventArgs e)
         {
-            if (workhorse.items == null || DisplayName.Text == "Loading items from file")
+            if (workhorse.Items == null || DisplayName.Text == "Loading items from file")
             {
                 return;
             }
-            workhorse.populateShoppingCart(workhorse.items[workhorse.NametoItemIndex(DisplayName.Text)]);
+            workhorse.PopulateShoppingCart(workhorse.Items[workhorse.NametoItemIndex(DisplayName.Text)]);
         }
 
         private void ClearCart_Click(object sender, EventArgs e)
@@ -388,7 +389,8 @@ namespace EvE_Build_UI
 
         private void GroupView_AfterSelect(object sender, TreeViewEventArgs e)
         {
-            if (GroupView.SelectedNode.Nodes.Count == 0) {
+            if (GroupView.SelectedNode.Nodes.Count == 0)
+            {
                 RunSelect.Value = 1;
                 UpdateManufacturing();
             }
@@ -402,12 +404,17 @@ namespace EvE_Build_UI
         private void GroupViewFaction_CheckedChanged(object sender, EventArgs e)
         {
             if (GroupView.SelectedNode.Nodes.Count != 0 &&
-                workhorse.items != null)
+                workhorse.Items != null)
             {
                 GridViewDataView.DataSource = workhorse.GroupComparison(
                     workhorse.GatherObjectsFromGroupView(
                         GroupView.SelectedNode, new int[0], GroupViewFaction.Checked), 10);
             }
+        }
+
+        private void oreCalculatorToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            workhorse.CreateOre();
         }
     }
 }

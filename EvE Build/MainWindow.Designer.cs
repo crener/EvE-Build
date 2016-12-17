@@ -85,6 +85,7 @@
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.optionsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.oreCalculatorToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.ToolProgress = new System.Windows.Forms.ToolStripProgressBar();
             this.ToolProgLbl = new System.Windows.Forms.ToolStripStatusLabel();
@@ -797,7 +798,8 @@
             // menuStrip1
             // 
             this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.optionsToolStripMenuItem});
+            this.optionsToolStripMenuItem,
+            this.oreCalculatorToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
             this.menuStrip1.Size = new System.Drawing.Size(901, 24);
@@ -810,6 +812,13 @@
             this.optionsToolStripMenuItem.Size = new System.Drawing.Size(61, 20);
             this.optionsToolStripMenuItem.Text = "Options";
             this.optionsToolStripMenuItem.Click += new System.EventHandler(this.optionsToolStripMenuItem_Click);
+            // 
+            // oreCalculatorToolStripMenuItem
+            // 
+            this.oreCalculatorToolStripMenuItem.Name = "oreCalculatorToolStripMenuItem";
+            this.oreCalculatorToolStripMenuItem.Size = new System.Drawing.Size(95, 20);
+            this.oreCalculatorToolStripMenuItem.Text = "Ore Calculator";
+            this.oreCalculatorToolStripMenuItem.Click += new System.EventHandler(this.oreCalculatorToolStripMenuItem_Click);
             // 
             // statusStrip1
             // 
@@ -997,6 +1006,7 @@
         private System.Windows.Forms.SplitContainer splitContainer7;
         private System.Windows.Forms.CheckBox GroupViewFaction;
         private System.Windows.Forms.DataGridView GridViewDataView;
+        private System.Windows.Forms.ToolStripMenuItem oreCalculatorToolStripMenuItem;
     }
 }
 
