@@ -1,13 +1,15 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.24720.0
+VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EvE Build", "EvE Build\EvE Build.csproj", "{2A08173E-CE13-403E-9F49-E7CFC8D63E5F}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EveCentralDataPuller", "EveCentralDataPuller\EveCentralDataPuller.csproj", "{56B63A4E-1C38-49C7-AF92-D69D8D6C7311}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YAMLImportTester", "YAMLImportTester\YAMLImportTester.csproj", "{F82C12B4-C2C5-4E44-B024-244538A2023B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EvE Build WPF", "EvE Build WPF\EvE Build WPF.csproj", "{753C52FF-F2C7-4676-9775-A7389285E35C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -70,6 +72,22 @@ Global
 		{F82C12B4-C2C5-4E44-B024-244538A2023B}.Release|x64.Build.0 = Release|Any CPU
 		{F82C12B4-C2C5-4E44-B024-244538A2023B}.Release|x86.ActiveCfg = Release|Any CPU
 		{F82C12B4-C2C5-4E44-B024-244538A2023B}.Release|x86.Build.0 = Release|Any CPU
+		{753C52FF-F2C7-4676-9775-A7389285E35C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{753C52FF-F2C7-4676-9775-A7389285E35C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{753C52FF-F2C7-4676-9775-A7389285E35C}.Debug|ARM.ActiveCfg = Debug|Any CPU
+		{753C52FF-F2C7-4676-9775-A7389285E35C}.Debug|ARM.Build.0 = Debug|Any CPU
+		{753C52FF-F2C7-4676-9775-A7389285E35C}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{753C52FF-F2C7-4676-9775-A7389285E35C}.Debug|x64.Build.0 = Debug|Any CPU
+		{753C52FF-F2C7-4676-9775-A7389285E35C}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{753C52FF-F2C7-4676-9775-A7389285E35C}.Debug|x86.Build.0 = Debug|Any CPU
+		{753C52FF-F2C7-4676-9775-A7389285E35C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{753C52FF-F2C7-4676-9775-A7389285E35C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{753C52FF-F2C7-4676-9775-A7389285E35C}.Release|ARM.ActiveCfg = Release|Any CPU
+		{753C52FF-F2C7-4676-9775-A7389285E35C}.Release|ARM.Build.0 = Release|Any CPU
+		{753C52FF-F2C7-4676-9775-A7389285E35C}.Release|x64.ActiveCfg = Release|Any CPU
+		{753C52FF-F2C7-4676-9775-A7389285E35C}.Release|x64.Build.0 = Release|Any CPU
+		{753C52FF-F2C7-4676-9775-A7389285E35C}.Release|x86.ActiveCfg = Release|Any CPU
+		{753C52FF-F2C7-4676-9775-A7389285E35C}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
