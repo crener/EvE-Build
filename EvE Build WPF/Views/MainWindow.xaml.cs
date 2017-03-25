@@ -1,5 +1,8 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using EvE_Build_WPF.Code;
@@ -18,7 +21,17 @@ namespace EvE_Build_WPF
         public MainWindow()
         {
             InitializeComponent();
+        }
 
+        private async void SetupData(object sender, RoutedEventArgs routedEventArgs)
+        {
+            await Task.Run(() => ExecuteDataAquisition());
+
+            BuildAllItems();
+        }
+
+        private void ExecuteDataAquisition()
+        {
             FileParser parser = new FileParser();
 
             //memory usage gets really big as the yaml data is parsed... GC the crap out of it
@@ -28,7 +41,21 @@ namespace EvE_Build_WPF
             GC.Collect();
             marketItems = parser.ParseMarketGroupData();
             GC.Collect();
+        }
 
+        private void BuildAllItems()
+        {
+            List<Item> sortedItems = new List<Item>(items.Values);
+            sortedItems.Sort();
+
+            foreach(Item item in sortedItems)
+            {
+                ListBoxItem listItem = new ListBoxItem();
+                listItem.Content = item.ProdName;
+                listItem.Tag = item.BlueprintId;
+
+                SearchAllList.Items.Add(listItem);
+            }
         }
 
         private void SearchTabs_SelectionChanged(object sender, SelectionChangedEventArgs e)

@@ -5,7 +5,8 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         x:Class="EvE_Build_WPF.MainWindow"
         mc:Ignorable="d"
-        Title="EvE Build" Height="460" Width="633" MinWidth="560" MinHeight="420">
+        Title="EvE Build" Height="460" Width="633" MinWidth="560" MinHeight="420"
+    Loaded="SetupData">
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="200*" MinWidth="120"/>

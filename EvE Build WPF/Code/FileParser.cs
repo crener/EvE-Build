@@ -2,6 +2,7 @@
 using System.IO;
 using System.Linq;
 using System.Collections.Generic;
+using System.Windows;
 using EvE_Build_WPF.Code.Containers;
 using YamlDotNet.RepresentationModel;
 
@@ -38,7 +39,7 @@ namespace EvE_Build_WPF.Code
                         Item candidate = new Item();
 
                         int blue;
-                        if (int.TryParse((string)node.Key, out blue)) candidate.BlueId = blue;
+                        if (int.TryParse((string)node.Key, out blue)) candidate.BlueprintId = blue;
 
                         YamlMappingNode currentEntry = (YamlMappingNode)node.Value;
                         YamlMappingNode activityNode = null;
@@ -56,8 +57,8 @@ namespace EvE_Build_WPF.Code
                                         candidate.ProdLimit = temp;
                                     break;
                                 case "blueprintTypeID":
-                                    if (int.TryParse(item.Value.ToString(), out temp) && temp != candidate.BlueId)
-                                        candidate.BlueId = temp;
+                                    if (int.TryParse(item.Value.ToString(), out temp) && temp != candidate.BlueprintId)
+                                        candidate.BlueprintId = temp;
                                     break;
                             }
                         }
@@ -148,9 +149,9 @@ namespace EvE_Build_WPF.Code
                             }
                         }
 
-                        if (candidate.CheckValididty() && !items.ContainsKey(candidate.BlueId))
+                        if (candidate.CheckValididty() && !items.ContainsKey(candidate.BlueprintId))
                         {
-                            items.Add(candidate.BlueId, candidate);
+                            items.Add(candidate.BlueprintId, candidate);
                         }
                     }
                     catch (Exception e)
@@ -174,7 +175,9 @@ namespace EvE_Build_WPF.Code
                 YamlStream file = new YamlStream();
                 file.Load(data);
 
-                foreach (KeyValuePair<YamlNode, YamlNode> node in (YamlMappingNode)file.Documents[0].RootNode)
+                YamlMappingNode rootNode = (YamlMappingNode) file.Documents[0].RootNode;
+
+                foreach (KeyValuePair<YamlNode, YamlNode> node in rootNode)
                 {
                     int blue;
                     Item current;
@@ -194,8 +197,8 @@ namespace EvE_Build_WPF.Code
                                     current.GroudId = temp;
                                 break;
                             case "name":
-                                if (item.Value.ToString() == "")
-                                    current.Name = item.Value["en"].ToString();
+                                if (item.Value.AllNodes.Contains("en") && item.Value["en"].ToString() != "")
+                                    current.BlueprintName = item.Value["en"].ToString();
                                 break;
                             case "raceID":
                                 current.Race = (Race)Enum.Parse(typeof(Race), item.Value.ToString());
@@ -205,8 +208,9 @@ namespace EvE_Build_WPF.Code
                                     current.MarketGroupId = temp;
                                 break;
                             case "basePrice":
-                                if (int.TryParse(item.Value.ToString(), out temp))
-                                    current.BasePrice = temp;
+                                long longTemp;
+                                if (long.TryParse(item.Value.ToString(), out longTemp))
+                                    current.BlueprintBasePrice = longTemp;
                                 break;
                             case "factionID":
                                 if (int.TryParse(item.Value.ToString(), out temp))
@@ -217,30 +221,42 @@ namespace EvE_Build_WPF.Code
                                 break;
                             case "published":
                                 if (!bool.Parse(item.Value.ToString()))
-                                    itemCollection.Remove(current.BlueId);
+                                    itemCollection.Remove(current.BlueprintId);
                                 break;
-#if DEBUG
-                            case "portionSize":
-                            //if (int.TryParse(item.Value.ToString(), out temp))
-                            //    candidate. = temp;
-                            //break;
-                            case "volume":
-                            case "traits":
-                            case "masteries":
-                            case "radius":
-                            case "graphicID":
-                            case "mass":
-                            case "sofMaterialSetID":
-                            case "soundID":
-                            case "description":
-                            case "capacity":
-                            case "iconID":
-                                //Ignore all for now
-                                break;
-#endif
                         }
                     }
                 }
+
+                //Just collect the name and base item price of each product blueprint
+                foreach(KeyValuePair<int, Item> item in itemCollection)
+                {
+                    bool yamlNode = rootNode.Children.Keys.Contains(new YamlScalarNode(item.Value.ProdId.ToString()));
+                    if(!yamlNode) continue;
+
+                    YamlNode itemNode = rootNode.Children[item.Value.ProdId.ToString()];
+
+                    bool nameExists = itemNode.AllNodes.Contains("name");
+                    if(nameExists)
+                    {
+
+                        YamlNode nameNode = itemNode["name"];
+                        if(nameNode.AllNodes.Contains("en") && nameNode["en"].ToString() != "")
+                            item.Value.ProdName = nameNode["en"].ToString();
+                    }
+
+                    bool priceExists = itemNode.AllNodes.Contains("basePrice");
+                    if(priceExists)
+                    {
+                        long temp;
+                        if(long.TryParse(itemNode["basePrice"].ToString(), out temp))
+                            item.Value.ProdBasePrice = temp;
+                    }
+                }
+            }
+            //make sure that all items actually have market data
+            foreach (KeyValuePair<int, Item> item in itemCollection)
+            {
+                if (!item.Value.CheckValididty()) itemCollection.Remove(item.Key);
             }
         }
 
@@ -251,26 +267,32 @@ namespace EvE_Build_WPF.Code
             if (!File.Exists(path)) throw new FileNotFoundException();
 
             List<MarketItem> collection = new List<MarketItem>();
-
-            using (StreamReader data = new StreamReader(path))
+            try
             {
-                string line = data.ReadLine();
-
-                while (!data.EndOfStream)
+                using (StreamReader data = new StreamReader(path))
                 {
-                    line = data.ReadLine();
-                    string[] lineElements = line.Split(',');
+                    string line = data.ReadLine();
 
-                    if (lineElements[0].Contains("\"")) continue;
+                    while (!data.EndOfStream)
+                    {
+                        line = data.ReadLine();
+                        string[] lineElements = line.Split(',');
 
-                    MarketItem item = new MarketItem();
-                    item.MarketId = int.Parse(lineElements[0]);
-                    item.ParentGroupId = lineElements[1] == "None" ? int.Parse(lineElements[0]) : -1;
-                    item.Name = lineElements[2];
-                    item.Description = lineElements[3];
+                        if (lineElements[0].Contains("\"")) continue;
 
-                    collection.Add(item);
+                        MarketItem item = new MarketItem();
+                        item.MarketId = int.Parse(lineElements[0]);
+                        item.ParentGroupId = lineElements[1] == "None" ? int.Parse(lineElements[0]) : -1;
+                        item.Name = lineElements[2];
+                        item.Description = lineElements[3];
+
+                        collection.Add(item);
+                    }
                 }
+            }
+            catch (AccessViolationException ave)
+            {
+                Console.WriteLine(ave);
             }
 
             return collection;

@@ -7,19 +7,21 @@ using Material = EvE_Build_WPF.Code.Containers.Material;
 
 namespace EvE_Build_WPF.Code
 {
-    public class Item
+    public class Item : IComparable<Item>, IComparer<Item>
     {
-        public string Name { get; set; }
-        public int BasePrice { get; set; }
-        public bool Released { get; set; }
+        public string BlueprintName { get; set; }
+        public long BlueprintBasePrice { get; set; }
+        public int BlueprintId { get; set; }
 
         public int TypeId { get; set; }
-        public int BlueId { get; set; }
+        public bool Released { get; set; }
 
+        public string ProdName { get; set; }
         public int ProdLimit { get; set; }
         public int ProdQty { get; set; }
         public int ProdId { get; set; }
         public int ProdTime { get; set; }
+        public long ProdBasePrice { get; set; }
 
         public int MatResearchTime { get; set; }
         public int TimeResearchTime { get; set; }
@@ -46,7 +48,7 @@ namespace EvE_Build_WPF.Code
 
         public Item(int blueprintId, int typeId)
         {
-            BlueId = blueprintId;
+            BlueprintId = blueprintId;
             TypeId = typeId;
 
             Race = Race.Unknown;
@@ -54,7 +56,14 @@ namespace EvE_Build_WPF.Code
 
         public bool CheckValididty()
         {
-            if(prodMats.Count > 0 && MarketGroupId != 0) return true;
+            if (prodMats.Count > 0) return true;
+            return false;
+        }
+
+
+        public bool CheckItemViability()
+        {
+            if (CheckValididty() && MarketGroupId != 0 && Released) return true;
             return false;
         }
 
@@ -144,6 +153,16 @@ namespace EvE_Build_WPF.Code
             }
 
             return costs.ToArray();
+        }
+
+        int IComparer<Item>.Compare(Item x, Item y)
+        {
+            return string.Compare(x.ProdName, y.ProdName, StringComparison.Ordinal);
+        }
+
+        public int CompareTo(Item other)
+        {
+            return string.Compare(ProdName, other.ProdName, StringComparison.Ordinal);
         }
     }
 }
