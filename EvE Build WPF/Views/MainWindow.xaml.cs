@@ -1,17 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
+using EvE_Build_WPF.Code;
+using EvE_Build_WPF.Code.Containers;
 
 namespace EvE_Build_WPF
 {
@@ -20,12 +12,31 @@ namespace EvE_Build_WPF
     /// </summary>
     public partial class MainWindow : Window
     {
+        private Dictionary<int, Item> items;
+        private List<MarketItem> marketItems;
+
         public MainWindow()
         {
             InitializeComponent();
+
+            FileParser parser = new FileParser();
+
+            //memory usage gets really big as the yaml data is parsed... GC the crap out of it
+            items = parser.ParseBlueprintData();
+            GC.Collect();
+            parser.ParseItemDetails(ref items);
+            GC.Collect();
+            marketItems = parser.ParseMarketGroupData();
+            GC.Collect();
+
         }
 
         private void SearchTabs_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+
+        }
+
+        private void ManBaseMaterial_Checked(object sender, RoutedEventArgs e)
         {
 
         }

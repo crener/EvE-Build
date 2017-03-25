@@ -65,7 +65,7 @@
 
                     <!--Right Side Controls-->
                     <DockPanel Grid.Row="1" Grid.Column="1" Grid.RowSpan="4">
-                        <CheckBox x:Name="ManBaseMaterial" HorizontalAlignment="Left" DockPanel.Dock="Top">Use Base Materials for calculation</CheckBox>
+                        <CheckBox x:Name="ManBaseMaterial" HorizontalAlignment="Left" DockPanel.Dock="Top" Checked="ManBaseMaterial_Checked">Use Base Materials for calculation</CheckBox>
                         <CheckBox x:Name="ManCalcBuyProfit" HorizontalAlignment="Left" DockPanel.Dock="Top">per hr profit calc. based on buy profit</CheckBox>
 
                         <Grid>
