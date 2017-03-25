@@ -2,7 +2,6 @@
 using System.IO;
 using System.Linq;
 using System.Collections.Generic;
-using System.Diagnostics.Contracts;
 using EvE_Build_WPF.Code.Containers;
 using YamlDotNet.RepresentationModel;
 
@@ -34,130 +33,130 @@ namespace EvE_Build_WPF.Code
 
                 foreach (KeyValuePair<YamlNode, YamlNode> node in root)
                 {
-                    Item candidate = new Item();
-
-                    int blue;
-                    if (int.TryParse((string)node.Key, out blue)) candidate.BlueId = blue;
-
-                    YamlMappingNode currentEntry = (YamlMappingNode)node.Value;
-                    YamlMappingNode activityNode = null;
-
-                    foreach (var item in currentEntry)
+                    try
                     {
-                        int temp;
-                        switch (item.Key.ToString())
+                        Item candidate = new Item();
+
+                        int blue;
+                        if (int.TryParse((string)node.Key, out blue)) candidate.BlueId = blue;
+
+                        YamlMappingNode currentEntry = (YamlMappingNode)node.Value;
+                        YamlMappingNode activityNode = null;
+
+                        foreach (var item in currentEntry)
                         {
-                            case "activities":
-                                activityNode = (YamlMappingNode)item.Value;
-                                break;
-                            case "maxProductionLimit":
-                                if (int.TryParse(item.Value.ToString(), out temp))
-                                    candidate.ProdLimit = temp;
-                                break;
-                            case "blueprintTypeID":
-                                if (int.TryParse(item.Value.ToString(), out temp) && temp != candidate.BlueId)
-                                    candidate.BlueId = temp;
-                                break;
-                            default:
-                                ;
-                                break;
+                            int temp;
+                            switch (item.Key.ToString())
+                            {
+                                case "activities":
+                                    activityNode = (YamlMappingNode)item.Value;
+                                    break;
+                                case "maxProductionLimit":
+                                    if (int.TryParse(item.Value.ToString(), out temp))
+                                        candidate.ProdLimit = temp;
+                                    break;
+                                case "blueprintTypeID":
+                                    if (int.TryParse(item.Value.ToString(), out temp) && temp != candidate.BlueId)
+                                        candidate.BlueId = temp;
+                                    break;
+                            }
                         }
-                    }
 
-                    if (activityNode == null) continue;
+                        if (activityNode == null) continue;
 
-                    foreach (KeyValuePair<YamlNode, YamlNode> activity in activityNode)
-                    {
-                        switch (activity.Key.ToString())
+                        foreach (KeyValuePair<YamlNode, YamlNode> activity in activityNode)
                         {
-                            #region Manufacturing data extraction
-                            case "manufacturing":
-                                if (activity.Value.AllNodes.Contains("materials"))
-                                {
-                                    foreach (YamlNode mat in (YamlSequenceNode)activity.Value["materials"])
+                            switch (activity.Key.ToString())
+                            {
+                                #region Manufacturing data extraction
+                                case "manufacturing":
+                                    if (activity.Value.AllNodes.Contains("materials"))
                                     {
-                                        int type = int.Parse(mat["typeID"].ToString());
-                                        long qty = long.Parse(mat["quantity"].ToString());
-
-                                        candidate.AddProductMaterial(type, qty);
-                                    }
-                                }
-
-                                if (activity.Value.AllNodes.Contains("products"))
-                                {
-                                    foreach (YamlNode prod in (YamlSequenceNode)activity.Value["products"])
-                                    {
-                                        candidate.ProdId = int.Parse(prod["typeID"].ToString());
-                                        candidate.ProdQty = int.Parse(prod["quantity"].ToString());
-
-                                        if (candidate.ProdId == 0)
+                                        foreach (YamlNode mat in (YamlSequenceNode)activity.Value["materials"])
                                         {
-                                            ;
+                                            int type = int.Parse(mat["typeID"].ToString());
+                                            long qty = long.Parse(mat["quantity"].ToString());
+
+                                            candidate.AddProductMaterial(type, qty);
                                         }
                                     }
-                                }
 
-                                if (activity.Value.AllNodes.Contains("skills"))
-                                {
-                                    foreach (YamlNode skill in (YamlSequenceNode)activity.Value["skills"])
+                                    if (activity.Value.AllNodes.Contains("products"))
                                     {
-                                        int type = int.Parse(skill["typeID"].ToString());
-                                        int level = int.Parse(skill["level"].ToString());
-
-                                        candidate.AddProductSkill(type, level);
+                                        foreach (YamlNode prod in (YamlSequenceNode)activity.Value["products"])
+                                        {
+                                            candidate.ProdId = int.Parse(prod["typeID"].ToString());
+                                            candidate.ProdQty = int.Parse(prod["quantity"].ToString());
+                                        }
                                     }
-                                }
 
-                                if (activity.Value.AllNodes.Contains("time"))
-                                {
-                                    candidate.ProdTime = int.Parse(activity.Value["time"].ToString());
-                                }
-                                break;
-                            #endregion
-                            #region Copy data extraction
-                            case "copying":
-                                if (activity.Value.AllNodes.Contains("materials"))
-                                {
-                                    foreach (YamlNode mat in (YamlSequenceNode)activity.Value["materials"])
+                                    if (activity.Value.AllNodes.Contains("skills"))
                                     {
-                                        int type = int.Parse(mat["typeID"].ToString());
-                                        long qty = long.Parse(mat["quantity"].ToString());
+                                        foreach (YamlNode skill in (YamlSequenceNode)activity.Value["skills"])
+                                        {
+                                            int type = int.Parse(skill["typeID"].ToString());
+                                            int level = int.Parse(skill["level"].ToString());
 
-                                        candidate.AddCopyMaterial(type, qty);
+                                            candidate.AddProductSkill(type, level);
+                                        }
                                     }
-                                }
 
-                                if (activity.Value.AllNodes.Contains("skills"))
-                                {
-                                    foreach (YamlNode skill in (YamlSequenceNode)activity.Value["skills"])
+                                    if (activity.Value.AllNodes.Contains("time"))
                                     {
-                                        int type = int.Parse(skill["typeID"].ToString());
-                                        int level = int.Parse(skill["level"].ToString());
-
-                                        candidate.AddCopySkill(type, level);
+                                        candidate.ProdTime = int.Parse(activity.Value["time"].ToString());
                                     }
-                                }
+                                    break;
+                                #endregion
 
-                                if (activity.Value.AllNodes.Contains("time"))
-                                {
-                                    candidate.CopyTime = int.Parse(activity.Value["time"].ToString());
-                                }
-                                break;
-                            #endregion
-                            case "research_material":
-                            case "research_time":
-                            case "invention":
-                                //Ignore all for now!!
-                                break;
-                            default:
-                                ;
-                                break;
+                                #region Copy data extraction
+                                case "copying":
+                                    if (activity.Value.AllNodes.Contains("materials"))
+                                    {
+                                        foreach (YamlNode mat in (YamlSequenceNode)activity.Value["materials"])
+                                        {
+                                            int type = int.Parse(mat["typeID"].ToString());
+                                            long qty = long.Parse(mat["quantity"].ToString());
+
+                                            candidate.AddCopyMaterial(type, qty);
+                                        }
+                                    }
+
+                                    if (activity.Value.AllNodes.Contains("skills"))
+                                    {
+                                        foreach (YamlNode skill in (YamlSequenceNode)activity.Value["skills"])
+                                        {
+                                            int type = int.Parse(skill["typeID"].ToString());
+                                            int level = int.Parse(skill["level"].ToString());
+
+                                            candidate.AddCopySkill(type, level);
+                                        }
+                                    }
+
+                                    if (activity.Value.AllNodes.Contains("time"))
+                                    {
+                                        candidate.CopyTime = int.Parse(activity.Value["time"].ToString());
+                                    }
+                                    break;
+                                #endregion
+#if DEBUG
+                                case "research_material":
+                                case "research_time":
+                                case "invention":
+                                    //Ignore all for now!!
+                                    break;
+#endif
+                            }
+                        }
+
+                        if (candidate.CheckValididty() && !items.ContainsKey(candidate.BlueId))
+                        {
+                            items.Add(candidate.BlueId, candidate);
                         }
                     }
-
-                    if (candidate.CheckValididty() && !items.ContainsKey(candidate.BlueId))
+                    catch (Exception e)
                     {
-                        items.Add(candidate.BlueId, candidate);
+                        //keep the conversion process from dying from an error in one of the nodes
+                        Console.WriteLine(e);
                     }
                 }
             }
@@ -218,11 +217,9 @@ namespace EvE_Build_WPF.Code
                                 break;
                             case "published":
                                 if (!bool.Parse(item.Value.ToString()))
-                                {
                                     itemCollection.Remove(current.BlueId);
-                                    continue;
-                                }
                                 break;
+#if DEBUG
                             case "portionSize":
                             //if (int.TryParse(item.Value.ToString(), out temp))
                             //    candidate. = temp;
@@ -240,6 +237,7 @@ namespace EvE_Build_WPF.Code
                             case "iconID":
                                 //Ignore all for now
                                 break;
+#endif
                         }
                     }
                 }
