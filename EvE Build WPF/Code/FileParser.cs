@@ -10,14 +10,18 @@ namespace EvE_Build_WPF.Code
 {
     class FileParser
     {
-        public FileParser()
+        public static bool CheckSaveDirectoryExists()
         {
             string directory = Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "static";
-
-            if (!Directory.Exists(directory)) Directory.CreateDirectory(directory);
+            if (!Directory.Exists(directory))
+            {
+                Directory.CreateDirectory(directory);
+                return false;
+            }
+            return true;
         }
 
-        public Dictionary<int, Item> ParseBlueprintData()
+        public static Dictionary<int, Item> ParseBlueprintData()
         {
             string path = Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "static" +
                           Path.DirectorySeparatorChar + "blueprints.yaml";
@@ -165,7 +169,7 @@ namespace EvE_Build_WPF.Code
             return items;
         }
 
-        public void ParseItemDetails(ref Dictionary<int, Item> itemCollection)
+        public static void ParseItemDetails(ref Dictionary<int, Item> itemCollection)
         {
             string path = Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "static" + Path.DirectorySeparatorChar + "typeIDs.yaml";
             if (!File.Exists(path)) throw new FileNotFoundException();
@@ -175,7 +179,7 @@ namespace EvE_Build_WPF.Code
                 YamlStream file = new YamlStream();
                 file.Load(data);
 
-                YamlMappingNode rootNode = (YamlMappingNode) file.Documents[0].RootNode;
+                YamlMappingNode rootNode = (YamlMappingNode)file.Documents[0].RootNode;
 
                 foreach (KeyValuePair<YamlNode, YamlNode> node in rootNode)
                 {
@@ -223,44 +227,49 @@ namespace EvE_Build_WPF.Code
                                 if (!bool.Parse(item.Value.ToString()))
                                     itemCollection.Remove(current.BlueprintId);
                                 break;
+                            case "volume":
+                                decimal volume;
+                                if (!decimal.TryParse(item.Value.ToString(), out volume))
+                                    current.ProdVolume = volume;
+                                break;
                         }
                     }
                 }
 
-                //Just collect the name and base item price of each product blueprint
-                foreach(KeyValuePair<int, Item> item in itemCollection)
+                //Just collect the name and base item price of each product blueprints product
+                foreach (KeyValuePair<int, Item> item in itemCollection)
                 {
                     bool yamlNode = rootNode.Children.Keys.Contains(new YamlScalarNode(item.Value.ProdId.ToString()));
-                    if(!yamlNode) continue;
+                    if (!yamlNode) continue;
 
                     YamlNode itemNode = rootNode.Children[item.Value.ProdId.ToString()];
 
                     bool nameExists = itemNode.AllNodes.Contains("name");
-                    if(nameExists)
+                    if (nameExists)
                     {
-
                         YamlNode nameNode = itemNode["name"];
-                        if(nameNode.AllNodes.Contains("en") && nameNode["en"].ToString() != "")
+                        if (nameNode.AllNodes.Contains("en") && nameNode["en"].ToString() != "")
                             item.Value.ProdName = nameNode["en"].ToString();
                     }
 
                     bool priceExists = itemNode.AllNodes.Contains("basePrice");
-                    if(priceExists)
+                    if (priceExists)
                     {
                         long temp;
-                        if(long.TryParse(itemNode["basePrice"].ToString(), out temp))
+                        if (long.TryParse(itemNode["basePrice"].ToString(), out temp))
                             item.Value.ProdBasePrice = temp;
                     }
                 }
             }
             //make sure that all items actually have market data
+            List<int> killList = new List<int>();
             foreach (KeyValuePair<int, Item> item in itemCollection)
-            {
-                if (!item.Value.CheckValididty()) itemCollection.Remove(item.Key);
-            }
+                if (!item.Value.CheckItemViability()) killList.Add(item.Key);
+
+            foreach (int i in killList) itemCollection.Remove(i);
         }
 
-        public List<MarketItem> ParseMarketGroupData()
+        public static List<MarketItem> ParseMarketGroupData()
         {
             string path = Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "static" +
                           Path.DirectorySeparatorChar + "invMarketGroups.csv";
@@ -276,6 +285,7 @@ namespace EvE_Build_WPF.Code
                     while (!data.EndOfStream)
                     {
                         line = data.ReadLine();
+                        if(line == null) continue;
                         string[] lineElements = line.Split(',');
 
                         if (lineElements[0].Contains("\"")) continue;

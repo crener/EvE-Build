@@ -38,9 +38,9 @@
     public class Cost
     {
         public int StationId { get; private set; }
-        public long Price { get; private set; }
+        public decimal Price { get; private set; }
 
-        public Cost(int stationId, long price)
+        public Cost(int stationId, decimal price)
         {
             StationId = stationId;
             Price = price;

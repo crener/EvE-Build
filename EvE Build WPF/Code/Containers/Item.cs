@@ -1,13 +1,11 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Windows.Documents;
 using EvE_Build_WPF.Code.Containers;
 using Material = EvE_Build_WPF.Code.Containers.Material;
 
 namespace EvE_Build_WPF.Code
 {
-    public class Item : IComparable<Item>, IComparer<Item>
+    public class Item : IComparable<Item>, IComparer<KeyValuePair<int, Item>>
     {
         public string BlueprintName { get; set; }
         public long BlueprintBasePrice { get; set; }
@@ -22,6 +20,7 @@ namespace EvE_Build_WPF.Code
         public int ProdId { get; set; }
         public int ProdTime { get; set; }
         public long ProdBasePrice { get; set; }
+        public decimal ProdVolume { get; set; }
 
         public int MatResearchTime { get; set; }
         public int TimeResearchTime { get; set; }
@@ -32,8 +31,8 @@ namespace EvE_Build_WPF.Code
         private Dictionary<int, int> prodSkills = new Dictionary<int, int>();
         private Dictionary<int, int> copySkills = new Dictionary<int, int>();
 
-        private Dictionary<int, long> buyCost = new Dictionary<int, long>();
-        private Dictionary<int, long> sellCost = new Dictionary<int, long>();
+        private Dictionary<int, decimal> buyCost = new Dictionary<int, decimal>();
+        private Dictionary<int, decimal> sellCost = new Dictionary<int, decimal>();
 
         public int FactionId { get; set; }
         public string SofFaction { get; set; }
@@ -43,7 +42,8 @@ namespace EvE_Build_WPF.Code
 
         public Item()
         {
-
+            ProdName = "";
+            Released = true;
         }
 
         public Item(int blueprintId, int typeId)
@@ -51,7 +51,9 @@ namespace EvE_Build_WPF.Code
             BlueprintId = blueprintId;
             TypeId = typeId;
 
+            ProdName = "";
             Race = Race.Unknown;
+            Released = true;
         }
 
         public bool CheckValididty()
@@ -59,12 +61,15 @@ namespace EvE_Build_WPF.Code
             if (prodMats.Count > 0) return true;
             return false;
         }
-
-
+        
         public bool CheckItemViability()
         {
-            if (CheckValididty() && MarketGroupId != 0 && Released) return true;
-            return false;
+            bool result = CheckValididty();
+            result = result && MarketGroupId != 0;
+            result = result && ProdName.Length >= 1;
+            result = result && BlueprintName != null;
+
+            return result;
         }
 
         public void AddProductMaterial(int id, long quantity)
@@ -137,7 +142,7 @@ namespace EvE_Build_WPF.Code
         public Cost[] getBuyPrice()
         {
             List<Cost> costs = new List<Cost>(buyCost.Count + 1);
-            foreach (KeyValuePair<int, long> pair in buyCost)
+            foreach (KeyValuePair<int, decimal> pair in buyCost)
             {
                 costs.Add(new Cost(pair.Key, pair.Value));
             }
@@ -147,7 +152,7 @@ namespace EvE_Build_WPF.Code
         public Cost[] getPrice()
         {
             List<Cost> costs = new List<Cost>(sellCost.Count + 1);
-            foreach (KeyValuePair<int, long> pair in sellCost)
+            foreach (KeyValuePair<int, decimal> pair in sellCost)
             {
                 costs.Add(new Cost(pair.Key, pair.Value));
             }
@@ -155,14 +160,20 @@ namespace EvE_Build_WPF.Code
             return costs.ToArray();
         }
 
-        int IComparer<Item>.Compare(Item x, Item y)
-        {
-            return string.Compare(x.ProdName, y.ProdName, StringComparison.Ordinal);
-        }
 
         public int CompareTo(Item other)
         {
             return string.Compare(ProdName, other.ProdName, StringComparison.Ordinal);
+        }
+
+        public int CompareTo(KeyValuePair<int, Item> other)
+        {
+            return CompareTo(other.Value);
+        }
+
+        public int Compare(KeyValuePair<int, Item> x, KeyValuePair<int, Item> y)
+        {
+            return x.Value.CompareTo(y.Value);
         }
     }
 }

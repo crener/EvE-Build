@@ -19,8 +19,8 @@
         <TabControl Grid.Column="0" x:Name="SearchTabs" Margin="5,27,2.5,5" SelectionChanged="SearchTabs_SelectionChanged">
             <TabItem Header="All Items" x:Name="SearchAllItems">
                 <DockPanel x:Name="SearchAllPanel" VerticalAlignment="Stretch">
-                    <TextBox x:Name="SearchAllBox" Height="22" VerticalAlignment="Top" DockPanel.Dock="Top"/>
-                    <ListBox x:Name="SearchAllList" VerticalAlignment="Stretch" Margin="0,3,0,0"/>
+                    <TextBox x:Name="SearchAllBox" Height="22" VerticalAlignment="Top" DockPanel.Dock="Top" TextChanged="SearchAllBox_TextChanged" />
+                    <ListBox x:Name="SearchAllList" VerticalAlignment="Stretch" Margin="0,3,0,0" SelectionChanged="SearchAllList_OnSelectionChanged"/>
                 </DockPanel>
             </TabItem>
             <TabItem Header="Groups" x:Name="SearchGroups">
@@ -47,7 +47,7 @@
                     <Label x:Name="ManName" FontWeight="Bold" FontSize="24" Grid.Row="0" Grid.ColumnSpan="2">Loading items from file</Label>
                     <DockPanel Grid.Row="1" Grid.Column="0">
                         <Label x:Name="ManTypeId" HorizontalAlignment="Left" VerticalAlignment="Center" Height="26" Width="46">TypeID</Label>
-                        <Label x:Name="ManBlueType" Margin="30,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center" Height="26" Width="58">BlueType</Label>
+                        <Label x:Name="ManBlueType" Margin="30,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center" Height="26" Width="58">BlueTypeID</Label>
                     </DockPanel>
 
                     <!--ME & TE level displays-->
