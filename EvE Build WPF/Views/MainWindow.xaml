@@ -20,7 +20,7 @@
             <TabItem Header="All Items" x:Name="SearchAllItems">
                 <DockPanel x:Name="SearchAllPanel" VerticalAlignment="Stretch">
                     <TextBox x:Name="SearchAllBox" Height="22" VerticalAlignment="Top" DockPanel.Dock="Top" TextChanged="SearchAllBox_TextChanged" />
-                    <ListBox x:Name="SearchAllList" VerticalAlignment="Stretch" Margin="0,3,0,0" SelectionChanged="SearchAllList_OnSelectionChanged"/>
+                    <ListBox x:Name="SearchAllList" VerticalAlignment="Stretch" Margin="0,3,0,0" SelectionChanged="SearchChanged"/>
                 </DockPanel>
             </TabItem>
             <TabItem Header="Groups" x:Name="SearchGroups">
@@ -75,17 +75,17 @@
                                 <RowDefinition Height="AUTO" MinHeight="58"/>
                             </Grid.RowDefinitions>
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="110"/>
+                                <ColumnDefinition Width="102"/>
                                 <ColumnDefinition/>
                             </Grid.ColumnDefinitions>
                             <Label VerticalAlignment="Top" Height="26">BPO Cost:</Label>
-                            <Label x:Name="ManBpoCost" HorizontalAlignment="Left" VerticalAlignment="Top" Grid.Column="1" Height="26" Width="16">0</Label>
+                            <Label x:Name="ManBpoCost" HorizontalAlignment="Left" VerticalAlignment="Top" Grid.Column="1" Height="26">0</Label>
                             <Label VerticalAlignment="Top" Margin="0,16,0,0" Height="26" Grid.RowSpan="2">Runs to pay BPO:</Label>
-                            <Label x:Name="ManBpoRuns" HorizontalAlignment="Left" Margin="0,16,0,0" VerticalAlignment="Top" Grid.Column="1" Height="26" Grid.RowSpan="2" Width="16">0</Label>
+                            <Label x:Name="ManBpoRuns" HorizontalAlignment="Left" Margin="0,16,0,56" Grid.Column="1" Grid.RowSpan="2">0</Label>
                             <Label VerticalAlignment="Top" Grid.Row="1" Height="26">Item Volume:</Label>
-                            <Label x:Name="ManVolumeItem" HorizontalAlignment="Left" VerticalAlignment="Top" Grid.Column="1" Grid.Row="1" Height="26" Width="37">0 m3</Label>
+                            <Label x:Name="ManVolumeItem" HorizontalAlignment="Left" VerticalAlignment="Top" Grid.Column="1" Grid.Row="1" Height="26">0 m3</Label>
                             <Label VerticalAlignment="Top" Margin="0,16,0,0" Grid.Row="1" Height="26">Material Volume:</Label>
-                            <Label x:Name="ManVolumeMaterial" HorizontalAlignment="Left" Margin="0,16,0,0" VerticalAlignment="Top" Grid.Row="1" Grid.Column="1" Height="26" Width="37">0 m3</Label>
+                            <Label x:Name="ManVolumeMaterial" HorizontalAlignment="Left" Margin="0,16,0,0" VerticalAlignment="Top" Grid.Row="1" Grid.Column="1" Height="26">0 m3</Label>
                         </Grid>
                     </DockPanel>
 
@@ -102,7 +102,7 @@
                         <RowDefinition Height="28"/>
                         <RowDefinition/>
                     </Grid.RowDefinitions>
-                    
+
                     <!--Controls-->
                     <DockPanel x:Name="OvControlPanel">
                         <Label Margin="0" ToolTip="Material Efficency" HorizontalAlignment="Left" VerticalAlignment="Center">ME</Label>
@@ -113,7 +113,7 @@
                         <CheckBox HorizontalAlignment="Left" VerticalAlignment="Center" Margin="15,0,0,0">Ignore Faction Items</CheckBox>
                         <CheckBox HorizontalAlignment="Left" VerticalAlignment="Center" Margin="5,0,0,0">Ignore Rigs</CheckBox>
                     </DockPanel>
-                    
+
                     <ListView x:Name="ovView" Grid.Row="1"></ListView>
                 </Grid>
             </TabItem>

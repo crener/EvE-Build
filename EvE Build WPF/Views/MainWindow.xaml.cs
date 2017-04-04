@@ -39,7 +39,7 @@ namespace EvE_Build_WPF
         private void ExecuteDataAquisition()
         {
             //ensure directory exists
-            new FileParser();
+            FileParser.CheckSaveDirectoryExists();
 
             //memory usage gets really big as the yaml data is parsed... GC the crap out of it
             items = FileParser.ParseBlueprintData();
@@ -79,7 +79,7 @@ namespace EvE_Build_WPF
 
         }
 
-        private void SearchAllList_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
+        private void SearchChanged(object sender, SelectionChangedEventArgs e)
         {
             Item item = items[(int)((ListBoxItem)((ListBox)sender).SelectedItem).Tag];
 
@@ -87,7 +87,7 @@ namespace EvE_Build_WPF
             ManTypeId.Content = item.ProdId;
             ManBlueType.Content = item.BlueprintId;
 
-            ManBpoCost.Content = item.BlueprintBasePrice;
+            ManBpoCost.Content = item.BlueprintBasePrice + " isk";
             ManVolumeItem.Content = item.ProdVolume + " m3";
         }
 

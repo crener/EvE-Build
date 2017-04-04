@@ -8,7 +8,7 @@ namespace EvE_Build_WPF.Code
     public class Item : IComparable<Item>, IComparer<KeyValuePair<int, Item>>
     {
         public string BlueprintName { get; set; }
-        public long BlueprintBasePrice { get; set; }
+        public decimal BlueprintBasePrice { get; set; }
         public int BlueprintId { get; set; }
 
         public int TypeId { get; set; }
@@ -19,7 +19,7 @@ namespace EvE_Build_WPF.Code
         public int ProdQty { get; set; }
         public int ProdId { get; set; }
         public int ProdTime { get; set; }
-        public long ProdBasePrice { get; set; }
+        public decimal ProdBasePrice { get; set; }
         public decimal ProdVolume { get; set; }
 
         public int MatResearchTime { get; set; }
