@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -17,7 +15,9 @@ namespace EvE_Build_WPF
     public partial class MainWindow : Window
     {
         private Dictionary<int, Item> items;
+        private Dictionary<int, MaterialItem> materials;
         private List<MarketItem> marketItems;
+        private bool initDone = false;
 
         public MainWindow()
         {
@@ -27,16 +27,19 @@ namespace EvE_Build_WPF
         private async void SetupData(object sender, RoutedEventArgs routedEventArgs)
         {
             Task[] jobs = new Task[2];
-            jobs[0] = Task.Run(() => ExecuteDataAquisition());
-            jobs[1] = Task.Run(() => buildMarketData());
+            jobs[0] = Task.Run(() => ExecuteDataAcquisition());
+            jobs[1] = Task.Run(() => BuildMarketData());
 
             await Task.WhenAll(jobs);
+            await Task.Run(() => BuildMaterial());
 
             BuildAllItems();
             ManName.Content = "Select an item from the right";
+
+            initDone = true;
         }
 
-        private void ExecuteDataAquisition()
+        private void ExecuteDataAcquisition()
         {
             //ensure directory exists
             FileParser.CheckSaveDirectoryExists();
@@ -48,10 +51,15 @@ namespace EvE_Build_WPF
             GC.Collect();
         }
 
-        private void buildMarketData()
+        private void BuildMarketData()
         {
             marketItems = FileParser.ParseMarketGroupData();
             GC.Collect();
+        }
+
+        private void BuildMaterial()
+        {
+            materials = FileParser.GatherMaterials(items);
         }
 
         private void BuildAllItems()
@@ -69,18 +77,10 @@ namespace EvE_Build_WPF
             }
         }
 
-        private void SearchTabs_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private void SearchListChanged(object sender, SelectionChangedEventArgs e)
         {
+            if(!initDone) return;
 
-        }
-
-        private void ManBaseMaterial_Checked(object sender, RoutedEventArgs e)
-        {
-
-        }
-
-        private void SearchChanged(object sender, SelectionChangedEventArgs e)
-        {
             Item item = items[(int)((ListBoxItem)((ListBox)sender).SelectedItem).Tag];
 
             ManName.Content = item.ProdName;
@@ -91,9 +91,10 @@ namespace EvE_Build_WPF
             ManVolumeItem.Content = item.ProdVolume + " m3";
         }
 
-        private void SearchAllBox_TextChanged(object sender, TextChangedEventArgs e)
+        private void SearchTextChanged(object sender, TextChangedEventArgs e)
         {
             ResetDefaultState();
+
             string searchTerm = ((TextBox)sender).Text.ToLower();
             if (string.IsNullOrEmpty(searchTerm)) return;
             if (items.Count <= 0) return;
@@ -106,9 +107,11 @@ namespace EvE_Build_WPF
 
             foreach (KeyValuePair<int, Item> item in results)
             {
-                ListBoxItem listItem = new ListBoxItem();
-                listItem.Content = item.Value.ProdName;
-                listItem.Tag = item.Value.BlueprintId;
+                ListBoxItem listItem = new ListBoxItem
+                {
+                    Content = item.Value.ProdName,
+                    Tag = item.Value.BlueprintId
+                };
 
                 SearchAllList.Items.Add(listItem);
             }

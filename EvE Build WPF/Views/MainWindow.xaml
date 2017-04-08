@@ -16,11 +16,11 @@
         <Menu x:Name="ToolBar" Height="22" VerticalAlignment="Top" Grid.ColumnSpan="8">
             <MenuItem x:Name="MenuOptions" Header="Options" Height="22" />
         </Menu>
-        <TabControl Grid.Column="0" x:Name="SearchTabs" Margin="5,27,2.5,5" SelectionChanged="SearchTabs_SelectionChanged">
+        <TabControl Grid.Column="0" x:Name="SearchTabs" Margin="5,27,2.5,5">
             <TabItem Header="All Items" x:Name="SearchAllItems">
                 <DockPanel x:Name="SearchAllPanel" VerticalAlignment="Stretch">
-                    <TextBox x:Name="SearchAllBox" Height="22" VerticalAlignment="Top" DockPanel.Dock="Top" TextChanged="SearchAllBox_TextChanged" />
-                    <ListBox x:Name="SearchAllList" VerticalAlignment="Stretch" Margin="0,3,0,0" SelectionChanged="SearchChanged"/>
+                    <TextBox x:Name="SearchAllBox" Height="22" VerticalAlignment="Top" DockPanel.Dock="Top" TextChanged="SearchTextChanged" />
+                    <ListBox x:Name="SearchAllList" VerticalAlignment="Stretch" Margin="0,3,0,0" SelectionChanged="SearchListChanged"/>
                 </DockPanel>
             </TabItem>
             <TabItem Header="Groups" x:Name="SearchGroups">
@@ -66,7 +66,7 @@
 
                     <!--Right Side Controls-->
                     <DockPanel Grid.Row="1" Grid.Column="1" Grid.RowSpan="4">
-                        <CheckBox x:Name="ManBaseMaterial" HorizontalAlignment="Left" DockPanel.Dock="Top" Checked="ManBaseMaterial_Checked">Use Base Materials for calculation</CheckBox>
+                        <CheckBox x:Name="ManBaseMaterial" HorizontalAlignment="Left" DockPanel.Dock="Top">Use Base Materials for calculation</CheckBox>
                         <CheckBox x:Name="ManCalcBuyProfit" HorizontalAlignment="Left" DockPanel.Dock="Top">per hr profit calc. based on buy profit</CheckBox>
 
                         <Grid>
@@ -105,10 +105,10 @@
 
                     <!--Controls-->
                     <DockPanel x:Name="OvControlPanel">
-                        <Label Margin="0" ToolTip="Material Efficency" HorizontalAlignment="Left" VerticalAlignment="Center">ME</Label>
+                        <Label Margin="0" ToolTip="Material Efficiency" HorizontalAlignment="Left" VerticalAlignment="Center">ME</Label>
                         <TextBox Width="30" Margin="0" MaxLines="1" HorizontalAlignment="Left">10</TextBox>
                         <Button x:Name="OvRefresh" HorizontalAlignment="Left" Margin="10,0,0,0" Padding="6,2" Height="22" VerticalAlignment="Center">Refresh</Button>
-                        <Label Margin="0" ToolTip="Time Efficency" HorizontalAlignment="Left" VerticalAlignment="Center">TE</Label>
+                        <Label Margin="0" ToolTip="Time Efficiency" HorizontalAlignment="Left" VerticalAlignment="Center">TE</Label>
                         <TextBox Margin="0,2" MaxLines="1" Width="30" HorizontalAlignment="Left">20</TextBox>
                         <CheckBox HorizontalAlignment="Left" VerticalAlignment="Center" Margin="15,0,0,0">Ignore Faction Items</CheckBox>
                         <CheckBox HorizontalAlignment="Left" VerticalAlignment="Center" Margin="5,0,0,0">Ignore Rigs</CheckBox>

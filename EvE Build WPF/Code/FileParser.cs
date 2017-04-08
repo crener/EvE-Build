@@ -1,8 +1,8 @@
 ﻿using System;
+using System.Collections;
 using System.IO;
 using System.Linq;
 using System.Collections.Generic;
-using System.Windows;
 using EvE_Build_WPF.Code.Containers;
 using YamlDotNet.RepresentationModel;
 
@@ -267,12 +267,12 @@ namespace EvE_Build_WPF.Code
                                     break;
                                 case "volume":
                                     decimal volume;
-                                    if(decimal.TryParse(item.Value.ToString(), out volume))
+                                    if (decimal.TryParse(item.Value.ToString(), out volume))
                                         current.ProdVolume = volume;
                                     break;
                                 case "factionID":
                                     int faction;
-                                    if(int.TryParse(item.Value.ToString(), out faction))
+                                    if (int.TryParse(item.Value.ToString(), out faction))
                                         current.FactionId = faction;
                                     break;
                             }
@@ -310,11 +310,13 @@ namespace EvE_Build_WPF.Code
 
                         if (lineElements[0].Contains("\"")) continue;
 
-                        MarketItem item = new MarketItem();
-                        item.MarketId = int.Parse(lineElements[0]);
-                        item.ParentGroupId = lineElements[1] == "None" ? int.Parse(lineElements[0]) : -1;
-                        item.Name = lineElements[2];
-                        item.Description = lineElements[3];
+                        MarketItem item = new MarketItem
+                        {
+                            MarketId = int.Parse(lineElements[0]),
+                            ParentGroupId = lineElements[1] == "None" ? int.Parse(lineElements[0]) : -1,
+                            Name = lineElements[2],
+                            Description = lineElements[3]
+                        };
 
                         collection.Add(item);
                     }
@@ -326,6 +328,22 @@ namespace EvE_Build_WPF.Code
             }
 
             return collection;
+        }
+
+        public static Dictionary<int, MaterialItem> GatherMaterials(Dictionary<int, Item> items)
+        {
+            Dictionary<int, MaterialItem> materials = new Dictionary<int, MaterialItem>();
+
+            foreach (KeyValuePair<int, Item> item in items)
+            {
+                foreach (Material material in item.Value.getProductMaterial())
+                {
+                    if (!materials.ContainsKey(material.Type) && !items.ContainsKey(material.Type))
+                        materials.Add(material.Type, new MaterialItem(material.Type));
+                }
+            }
+
+            return materials;
         }
     }
 }

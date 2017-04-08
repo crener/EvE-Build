@@ -73,6 +73,7 @@
     </Compile>
     <Compile Include="Code\Containers\Item.cs" />
     <Compile Include="Code\Containers\MarketItem.cs" />
+    <Compile Include="Code\Containers\MaterialItem.cs" />
     <Compile Include="Code\Containers\Types.cs" />
     <Compile Include="Code\FileParser.cs" />
     <Compile Include="Views\MainWindow.xaml.cs">
