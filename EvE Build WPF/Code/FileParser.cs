@@ -185,7 +185,6 @@ namespace EvE_Build_WPF.Code
                 {
                     int blue;
                     Item current;
-                    bool blueprint = true;
 
                     if (!int.TryParse((string)node.Key, out blue) || blue == 0) continue;
                     if (!itemCollection.TryGetValue(blue, out current))
@@ -195,7 +194,6 @@ namespace EvE_Build_WPF.Code
                             if (pair.Value.ProdId == blue)
                             {
                                 current = pair.Value;
-                                blueprint = false;
                                 break;
                             }
                         }
@@ -205,75 +203,80 @@ namespace EvE_Build_WPF.Code
 
                     YamlMappingNode currentEntry = (YamlMappingNode)node.Value;
 
-                    if (blueprint)
+                    foreach (KeyValuePair<YamlNode, YamlNode> item in currentEntry)
                     {
-                        foreach (KeyValuePair<YamlNode, YamlNode> item in currentEntry)
+                        int temp;
+                        switch (item.Key.ToString())
                         {
-                            int temp;
-                            switch (item.Key.ToString())
-                            {
-                                case "groupID":
-                                    if (int.TryParse(item.Value.ToString(), out temp))
-                                        current.GroudId = temp;
-                                    break;
-                                case "name":
-                                    if (item.Value.AllNodes.Contains("en") && item.Value["en"].ToString() != "")
-                                        current.BlueprintName = item.Value["en"].ToString();
-                                    break;
-                                case "raceID":
-                                    current.Race = (Race)Enum.Parse(typeof(Race), item.Value.ToString());
-                                    break;
-                                case "marketGroupID":
-                                    if (int.TryParse(item.Value.ToString(), out temp))
-                                        current.MarketGroupId = temp;
-                                    break;
-                                case "basePrice":
-                                    decimal longTemp;
-                                    if (decimal.TryParse(item.Value.ToString(), out longTemp))
-                                        current.BlueprintBasePrice = longTemp;
-                                    break;
-                                case "factionID":
-                                    if (int.TryParse(item.Value.ToString(), out temp))
-                                        current.FactionId = temp;
-                                    break;
-                                case "sofFactionName":
-                                    current.SofFaction = item.Value.ToString();
-                                    break;
-                                case "published":
-                                    if (!bool.Parse(item.Value.ToString()))
-                                        itemCollection.Remove(current.BlueprintId);
-                                    break;
-                            }
+                            case "groupID":
+                                if (int.TryParse(item.Value.ToString(), out temp))
+                                    current.GroudId = temp;
+                                break;
+                            case "name":
+                                if (item.Value.AllNodes.Contains("en") && item.Value["en"].ToString() != "")
+                                    current.BlueprintName = item.Value["en"].ToString();
+                                break;
+                            case "raceID":
+                                current.Race = (Race)Enum.Parse(typeof(Race), item.Value.ToString());
+                                break;
+                            case "marketGroupID":
+                                if (int.TryParse(item.Value.ToString(), out temp))
+                                    current.MarketGroupId = temp;
+                                break;
+                            case "basePrice":
+                                decimal longTemp;
+                                if (decimal.TryParse(item.Value.ToString(), out longTemp))
+                                    current.BlueprintBasePrice = longTemp;
+                                break;
+                            case "factionID":
+                                if (int.TryParse(item.Value.ToString(), out temp))
+                                    current.FactionId = temp;
+                                break;
+                            case "sofFactionName":
+                                current.SofFaction = item.Value.ToString();
+                                break;
+                            case "published":
+                                if (!bool.Parse(item.Value.ToString()))
+                                    itemCollection.Remove(current.BlueprintId);
+                                break;
                         }
                     }
-                    else
+                }
+
+                foreach (Item item in itemCollection.Values)
+                {
+                    int id = item.ProdId;
+                    YamlNode node;
+
+                    if (rootNode.Children.TryGetValue(new YamlScalarNode(id.ToString()), out node))
                     {
-                        foreach (KeyValuePair<YamlNode, YamlNode> item in currentEntry)
+                        YamlMappingNode mapping = (YamlMappingNode)node;
+                        foreach (KeyValuePair<YamlNode, YamlNode> allNodes in mapping.Children)
                         {
-                            switch (item.Key.ToString())
+                            switch (allNodes.Key.ToString())
                             {
                                 case "name":
-                                    if (item.Value.AllNodes.Contains("en") && item.Value["en"].ToString() != "")
-                                        current.ProdName = item.Value["en"].ToString();
+                                    if (allNodes.Value.AllNodes.Contains("en") && allNodes.Value["en"].ToString() != "")
+                                        item.ProdName = allNodes.Value["en"].ToString();
                                     break;
                                 case "basePrice":
                                     decimal longTemp;
-                                    if (decimal.TryParse(item.Value.ToString(), out longTemp))
-                                        current.ProdBasePrice = longTemp;
+                                    if (decimal.TryParse(allNodes.Value.ToString(), out longTemp))
+                                        item.ProdBasePrice = longTemp;
                                     break;
                                 case "published":
-                                    if (!bool.Parse(item.Value.ToString()))
-                                        itemCollection.Remove(current.BlueprintId);
+                                    if (!bool.Parse(allNodes.Value.ToString()))
+                                        itemCollection.Remove(item.BlueprintId);
                                     break;
                                 case "volume":
                                     decimal volume;
-                                    if (decimal.TryParse(item.Value.ToString(), out volume))
-                                        current.ProdVolume = volume;
+                                    if (decimal.TryParse(allNodes.Value.ToString(), out volume))
+                                        item.ProdVolume = volume;
                                     break;
                                 case "factionID":
                                     int faction;
-                                    if (int.TryParse(item.Value.ToString(), out faction))
-                                        current.FactionId = faction;
+                                    if (int.TryParse(allNodes.Value.ToString(), out faction))
+                                        item.FactionId = faction;
                                     break;
                             }
                         }
