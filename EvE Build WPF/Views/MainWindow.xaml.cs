@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -34,9 +36,69 @@ namespace EvE_Build_WPF
             await Task.Run(() => BuildMaterial());
 
             BuildAllItems();
+            BuildTreeView();
             ManName.Content = "Select an item from the right";
 
             initDone = true;
+        }
+
+        private void BuildTreeView()
+        {
+            //create initial tree view items
+            foreach (MarketItem mat in marketItems)
+            {
+                TreeViewItem viewItem = new TreeViewItem();
+                viewItem.Header = mat.Name;
+                viewItem.Tag = "market," + mat.MarketId;
+
+                mat.TreeViewObject = viewItem;
+                if (mat.ParentGroupId == -1) GroupView.Items.Add(viewItem);
+            }
+
+            //link tree view items to get the correct hierarchy 
+            foreach (MarketItem mat in marketItems)
+            {
+                if (mat.ParentGroupId != -1)
+                {
+                    MarketItem parent = marketItems.First(x => x.MarketId == mat.ParentGroupId);
+                    parent.TreeViewObject.Items.Add(mat.TreeViewObject);
+                }
+            }
+
+            //add Items to each market item
+            foreach (KeyValuePair<int, Item> item in items)
+            {
+                try
+                {
+                    MarketItem group = marketItems.First(x => x.MarketId == item.Value.MarketGroupId);
+
+                    TreeViewItem viewItem = new TreeViewItem();
+                    viewItem.Tag = "item," + item.Key;
+                    viewItem.Header = item.Value.ProdName;
+
+                    group.TreeViewObject.Items.Add(viewItem);
+                }
+                catch (InvalidOperationException)
+                {
+                    continue;
+                }
+            }
+
+            //clear out all the market groups that have no items
+            /*foreach (MarketItem item in marketItems)
+            {
+                bool alive = item.TreeViewObject.Items.Count != 0;
+                alive = alive && ((string) ((TreeViewItem) item.TreeViewObject.Items.GetItemAt(0)).Tag).Contains("market");
+
+                if (!alive)
+                {
+                    if (item.ParentGroupId != -1) marketItems.First(x => x.MarketId == item.ParentGroupId).TreeViewObject.Items.Remove(item.TreeViewObject);
+                    if (item.ParentGroupId == -1) GroupView.Items.Remove(item.TreeViewObject);
+
+                    //clear out the reference so GC can grab it
+                    item.TreeViewObject = null;
+                }
+            }*/
         }
 
         private void ExecuteDataAcquisition()
@@ -79,7 +141,7 @@ namespace EvE_Build_WPF
 
         private void SearchListChanged(object sender, SelectionChangedEventArgs e)
         {
-            if(!initDone) return;
+            if (!initDone) return;
 
             Item item = items[(int)((ListBoxItem)((ListBox)sender).SelectedItem).Tag];
 

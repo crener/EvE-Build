@@ -219,10 +219,6 @@ namespace EvE_Build_WPF.Code
                             case "raceID":
                                 current.Race = (Race)Enum.Parse(typeof(Race), item.Value.ToString());
                                 break;
-                            case "marketGroupID":
-                                if (int.TryParse(item.Value.ToString(), out temp))
-                                    current.MarketGroupId = temp;
-                                break;
                             case "basePrice":
                                 decimal longTemp;
                                 if (decimal.TryParse(item.Value.ToString(), out longTemp))
@@ -278,6 +274,11 @@ namespace EvE_Build_WPF.Code
                                     if (int.TryParse(allNodes.Value.ToString(), out faction))
                                         item.FactionId = faction;
                                     break;
+                                case "marketGroupID":
+                                    int temp;
+                                    if (int.TryParse(allNodes.Value.ToString(), out temp))
+                                        item.MarketGroupId = temp;
+                                    break;
                             }
                         }
                     }
@@ -316,7 +317,7 @@ namespace EvE_Build_WPF.Code
                         MarketItem item = new MarketItem
                         {
                             MarketId = int.Parse(lineElements[0]),
-                            ParentGroupId = lineElements[1] == "None" ? int.Parse(lineElements[0]) : -1,
+                            ParentGroupId = lineElements[1] == "None" ? -1 : int.Parse(lineElements[1]),
                             Name = lineElements[2],
                             Description = lineElements[3]
                         };
