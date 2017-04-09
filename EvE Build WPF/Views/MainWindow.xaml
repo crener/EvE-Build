@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         x:Class="EvE_Build_WPF.MainWindow"
         mc:Ignorable="d"
-        Title="EvE Build" Height="460" Width="633" MinWidth="560" MinHeight="420"
+        Title="EvE Build" Height="460" Width="800" MinWidth="560" MinHeight="420"
     Loaded="SetupData">
     <Grid>
         <Grid.ColumnDefinitions>
@@ -90,9 +90,22 @@
                     </DockPanel>
 
                     <DataGrid x:Name="ManProfit" Grid.Row="5" Grid.ColumnSpan="2" Grid.Column="0">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Station" Width="*"/>
+                            <DataGridTextColumn Header="Build Cost" Width="*"/>
+                            <DataGridTextColumn Header="Item Cost" Width="*"/>
+                            <DataGridTextColumn Header="Sell Margin" Width="*"/>
+                            <DataGridTextColumn Header="Buy Margin" Width="*"/>
+                            <DataGridTextColumn Header="Isk/Hr" Width="*"/>
+                            <DataGridTextColumn Header="Investment" Width="*"/>
+                        </DataGrid.Columns>
                     </DataGrid>
 
                     <DataGrid x:Name="ManRaw" Grid.Row="6" Grid.ColumnSpan="2" Grid.Column="0">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Name" Width="*"/>
+                            <DataGridTextColumn Header="Quantity" Width="*"/>
+                        </DataGrid.Columns>
                     </DataGrid>
                 </Grid>
             </TabItem>

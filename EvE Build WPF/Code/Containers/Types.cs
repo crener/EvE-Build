@@ -46,4 +46,16 @@
             Price = price;
         }
     }
+
+    public class Station
+    {
+        public int StationId { get; private set; }
+        public string StationName { get; private set; }
+
+        public Station(int stationId, string stationName)
+        {
+            StationId = stationId;
+            StationName = stationName;
+        }
+    }
 }

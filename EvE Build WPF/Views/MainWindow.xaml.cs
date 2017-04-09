@@ -1,11 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Collections.Generic;
 using EvE_Build_WPF.Code;
 using EvE_Build_WPF.Code.Containers;
 
@@ -28,9 +26,10 @@ namespace EvE_Build_WPF
 
         private async void SetupData(object sender, RoutedEventArgs routedEventArgs)
         {
-            Task[] jobs = new Task[2];
+            Task[] jobs = new Task[3];
             jobs[0] = Task.Run(() => ExecuteDataAcquisition());
             jobs[1] = Task.Run(() => BuildMarketData());
+            jobs[2] = Task.Run(() => LoadSettings());
 
             await Task.WhenAll(jobs);
             await Task.Run(() => BuildMaterial());
@@ -139,18 +138,16 @@ namespace EvE_Build_WPF
             }
         }
 
+        private void LoadSettings()
+        {
+            Settings.Load();
+        }
+
         private void SearchListChanged(object sender, SelectionChangedEventArgs e)
         {
             if (!initDone) return;
 
-            Item item = items[(int)((ListBoxItem)((ListBox)sender).SelectedItem).Tag];
-
-            ManName.Content = item.ProdName;
-            ManTypeId.Content = item.ProdId;
-            ManBlueType.Content = item.BlueprintId;
-
-            ManBpoCost.Content = item.BlueprintBasePrice + " isk";
-            ManVolumeItem.Content = item.ProdVolume + " m3";
+            ChangeManufactureItem((int)((ListBoxItem)((ListBox)sender).SelectedItem).Tag);
         }
 
         private void SearchTextChanged(object sender, TextChangedEventArgs e)
@@ -177,6 +174,18 @@ namespace EvE_Build_WPF
 
                 SearchAllList.Items.Add(listItem);
             }
+        }
+
+        private void ChangeManufactureItem(int itemId)
+        {
+            Item item = items[itemId];
+
+            ManName.Content = item.ProdName;
+            ManTypeId.Content = item.ProdId;
+            ManBlueType.Content = item.BlueprintId;
+
+            ManBpoCost.Content = item.BlueprintBasePrice + " isk";
+            ManVolumeItem.Content = item.ProdVolume + " m3";
         }
 
         private void ResetDefaultState()
