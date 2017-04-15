@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Collections.Generic;
+using System.Data;
 using EvE_Build_WPF.Code;
 using EvE_Build_WPF.Code.Containers;
 
@@ -186,7 +187,31 @@ namespace EvE_Build_WPF
 
             ManBpoCost.Content = item.BlueprintBasePrice + " isk";
             ManVolumeItem.Content = item.ProdVolume + " m3";
+
+            CalculateMaterials(item);
         }
+
+
+        private void CalculateMaterials(Item item)
+        {
+            ManRaw.Items.Clear();
+
+            float me = 1f - (float)ManMe.Value / 100f;
+
+            foreach (Material material in item.getProductMaterial())
+            {
+                long actualQty = (long)Math.Ceiling(material.Quantity * me);
+
+                DataGridMaterial gridMaterial = new DataGridMaterial
+                {
+                    Name = materials[material.Type].Name,
+                    Quantity = actualQty
+                };
+
+                ManRaw.Items.Add(gridMaterial);
+            }
+        }
+
 
         private void ResetDefaultState()
         {
@@ -199,6 +224,16 @@ namespace EvE_Build_WPF
 
             ManVolumeItem.Content = "0 m3";
             ManVolumeMaterial.Content = "0 m3";
+        }
+
+        private void MeChange(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            ListBoxItem box = (ListBoxItem) SearchAllList.SelectedItem;
+            if(box == null) return;
+            
+            Item item = items[(int)box.Tag];
+
+            CalculateMaterials(item);
         }
     }
 }

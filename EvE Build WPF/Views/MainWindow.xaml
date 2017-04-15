@@ -60,7 +60,7 @@
 
                     <!--Slide Controls-->
                     <DockPanel Grid.Row="3" Grid.Column="0">
-                        <Slider x:Name="ManMe" VerticalAlignment="Center" Width="80" SmallChange="1" Value="10" TickPlacement="BottomRight" IsSnapToTickEnabled="True"/>
+                        <Slider x:Name="ManMe" VerticalAlignment="Center" Width="80" SmallChange="1" Value="10" TickPlacement="BottomRight" IsSnapToTickEnabled="True" ValueChanged="MeChange"/>
                         <Slider x:Name="ManTe" VerticalAlignment="Center" Width="80" Maximum="20" SmallChange="1" Value="20" TickPlacement="BottomRight" IsSnapToTickEnabled="True" HorizontalAlignment="Left" Margin="16,0,0,0"/>
                     </DockPanel>
 
@@ -103,8 +103,8 @@
 
                     <DataGrid x:Name="ManRaw" Grid.Row="6" Grid.ColumnSpan="2" Grid.Column="0">
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="Name" Width="*"/>
-                            <DataGridTextColumn Header="Quantity" Width="*"/>
+                            <DataGridTextColumn Header="Name" Width="*" Binding="{Binding Name}"/>
+                            <DataGridTextColumn Header="Quantity" Width="*" Binding="{Binding Quantity}"/>
                         </DataGrid.Columns>
                     </DataGrid>
                 </Grid>

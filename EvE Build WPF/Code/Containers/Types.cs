@@ -58,4 +58,10 @@
             StationName = stationName;
         }
     }
+
+    public class DataGridMaterial
+    {
+        public string Name { get; set; }
+        public long Quantity { get; set; }
+    }
 }
