@@ -1,8 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace EvE_Build_WPF.Code.Containers
 {
-    class MaterialItem
+    class MaterialItem : IEveCentralItem
     {
         public string Name { get; set; }
         public int Id { get; set; }
@@ -24,10 +25,49 @@ namespace EvE_Build_WPF.Code.Containers
             return 0m;
         }
 
+        /// <summary>
+        /// returns cheapest price from collection
+        /// </summary>
+        /// <returns></returns>
+        public decimal getPrice()
+        {
+            if (prices.Count == 0) return 0m;
+
+            decimal cheapest = decimal.MaxValue;
+
+            foreach (decimal current in prices.Values)
+            {
+                if (current < cheapest) cheapest = current;
+            }
+
+            return cheapest;
+        }
 
         public void addPrice(int stationId, decimal cost)
         {
             prices.Add(stationId, cost);
+        }
+
+        public static MaterialItem merdge(int id, MaterialItem newObject)
+        {
+            return newObject;
+        }
+
+        public void setBuyCost(int currentStation, decimal cost)
+        {
+            if (prices.ContainsKey(currentStation))
+            {
+                prices[currentStation] = cost;
+            }
+            else
+            {
+                prices.Add(currentStation, cost);
+            }
+        }
+
+        public void setSellCost(int currentStation, decimal cost)
+        {
+            //ignore as there are no sell prices for items
         }
     }
 }

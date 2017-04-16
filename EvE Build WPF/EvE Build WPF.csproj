@@ -75,6 +75,8 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Code\CentralThread.cs" />
+    <Compile Include="Code\Containers\IEveCentralItem.cs" />
     <Compile Include="Code\Containers\Item.cs" />
     <Compile Include="Code\Containers\MarketItem.cs" />
     <Compile Include="Code\Containers\MaterialItem.cs" />

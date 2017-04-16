@@ -91,13 +91,13 @@
 
                     <DataGrid x:Name="ManProfit" Grid.Row="5" Grid.ColumnSpan="2" Grid.Column="0">
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="Station" Width="*"/>
-                            <DataGridTextColumn Header="Build Cost" Width="*"/>
-                            <DataGridTextColumn Header="Item Cost" Width="*"/>
-                            <DataGridTextColumn Header="Sell Margin" Width="*"/>
-                            <DataGridTextColumn Header="Buy Margin" Width="*"/>
-                            <DataGridTextColumn Header="Isk/Hr" Width="*"/>
-                            <DataGridTextColumn Header="Investment" Width="*"/>
+                            <DataGridTextColumn Header="Station" Width="*" Binding="{Binding Name}"/>
+                            <DataGridTextColumn Header="Build Cost" Width="*" Binding="{Binding BuildCost}"/>
+                            <DataGridTextColumn Header="Item Cost" Width="*" Binding="{Binding ItemCost}"/>
+                            <DataGridTextColumn Header="Sell Margin" Width="*" Binding="{Binding SellMargin}"/>
+                            <DataGridTextColumn Header="Buy Margin" Width="*" Binding="{Binding SellMargin}"/>
+                            <DataGridTextColumn Header="Isk/Hr" Width="*" Binding="{Binding IskHr}"/>
+                            <DataGridTextColumn Header="Investment" Width="*" Binding="{Binding Investment}"/>
                         </DataGrid.Columns>
                     </DataGrid>
 
@@ -105,6 +105,7 @@
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="Name" Width="*" Binding="{Binding Name}"/>
                             <DataGridTextColumn Header="Quantity" Width="*" Binding="{Binding Quantity}"/>
+                            <DataGridTextColumn Header="Cost" Width="*" Binding="{Binding Cost}"/>
                         </DataGrid.Columns>
                     </DataGrid>
                 </Grid>

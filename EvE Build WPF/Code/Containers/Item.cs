@@ -5,7 +5,7 @@ using Material = EvE_Build_WPF.Code.Containers.Material;
 
 namespace EvE_Build_WPF.Code
 {
-    public class Item : IComparable<Item>, IComparer<KeyValuePair<int, Item>>
+    public class Item : IComparable<Item>, IComparer<KeyValuePair<int, Item>>, IEveCentralItem
     {
         public string BlueprintName { get; set; }
         public decimal BlueprintBasePrice { get; set; }
@@ -61,7 +61,7 @@ namespace EvE_Build_WPF.Code
             if (prodMats.Count > 0) return true;
             return false;
         }
-        
+
         public bool CheckItemViability()
         {
             bool result = CheckValididty();
@@ -76,10 +76,12 @@ namespace EvE_Build_WPF.Code
         {
             prodMats.Add(id, quantity);
         }
+
         public void AddCopyMaterial(int id, long quantity)
         {
             copyMats.Add(id, quantity);
         }
+
         public void AddProductSkill(int id, int level)
         {
             if (level > 6) throw new FormatException();
@@ -87,6 +89,7 @@ namespace EvE_Build_WPF.Code
 
             prodSkills.Add(id, level);
         }
+
         public void AddCopySkill(int id, int level)
         {
             if (level > 6) throw new FormatException();
@@ -95,71 +98,95 @@ namespace EvE_Build_WPF.Code
             copySkills.Add(id, level);
         }
 
-        public Material[] getProductMaterial()
+        public Material[] ProductMaterial
         {
-            List<Material> mats = new List<Material>(prodMats.Count + 1);
-            foreach (KeyValuePair<int, long> pair in prodMats)
+            get
             {
-                mats.Add(new Material(pair.Key, pair.Value));
-            }
+                List<Material> mats = new List<Material>(prodMats.Count + 1);
+                foreach (KeyValuePair<int, long> pair in prodMats)
+                {
+                    mats.Add(new Material(pair.Key, pair.Value));
+                }
 
-            return mats.ToArray();
+                return mats.ToArray();
+            }
         }
 
-        public Skill[] getProductSkills()
+        public Skill[] ProductSkills
         {
-            List<Skill> skills = new List<Skill>(prodSkills.Count + 1);
-            foreach (KeyValuePair<int, int> pair in prodSkills)
+            get
             {
-                skills.Add(new Skill(pair.Key, pair.Value));
-            }
+                List<Skill> skills = new List<Skill>(prodSkills.Count + 1);
+                foreach (KeyValuePair<int, int> pair in prodSkills)
+                {
+                    skills.Add(new Skill(pair.Key, pair.Value));
+                }
 
-            return skills.ToArray();
+                return skills.ToArray();
+            }
         }
 
-        public Material[] getCopyMaterial()
+        public Material[] CopyMaterial
         {
-            List<Material> mats = new List<Material>(copyMats.Count + 1);
-            foreach (KeyValuePair<int, long> pair in copyMats)
+            get
             {
-                mats.Add(new Material(pair.Key, pair.Value));
-            }
+                List<Material> mats = new List<Material>(copyMats.Count + 1);
+                foreach (KeyValuePair<int, long> pair in copyMats)
+                {
+                    mats.Add(new Material(pair.Key, pair.Value));
+                }
 
-            return mats.ToArray();
+                return mats.ToArray();
+            }
         }
 
-        public Skill[] getCopySkills()
+        public Skill[] CopySkills
         {
-            List<Skill> skills = new List<Skill>(copySkills.Count + 1);
-            foreach (KeyValuePair<int, int> pair in copySkills)
+            get
             {
-                skills.Add(new Skill(pair.Key, pair.Value));
-            }
+                List<Skill> skills = new List<Skill>(copySkills.Count + 1);
+                foreach (KeyValuePair<int, int> pair in copySkills)
+                {
+                    skills.Add(new Skill(pair.Key, pair.Value));
+                }
 
-            return skills.ToArray();
+                return skills.ToArray();
+            }
         }
 
-        public Cost[] getBuyPrice()
+        public Dictionary<int, decimal> BuyPrice
         {
-            List<Cost> costs = new List<Cost>(buyCost.Count + 1);
-            foreach (KeyValuePair<int, decimal> pair in buyCost)
+            get
             {
-                costs.Add(new Cost(pair.Key, pair.Value));
+                return buyCost;
             }
-
-            return costs.ToArray();
-        }
-        public Cost[] getPrice()
-        {
-            List<Cost> costs = new List<Cost>(sellCost.Count + 1);
-            foreach (KeyValuePair<int, decimal> pair in sellCost)
-            {
-                costs.Add(new Cost(pair.Key, pair.Value));
-            }
-
-            return costs.ToArray();
         }
 
+        public Dictionary<int, decimal> SellPrice
+        {
+            get
+            {
+                return sellCost;
+            }
+        }
+
+        public void setBuyCost(int station, decimal isk)
+        {
+            if (buyCost.ContainsKey(station))
+            {
+                buyCost[station] = isk;
+            }
+            else { buyCost.Add(station, isk); }
+        }
+
+        public void setSellCost(int station, decimal isk)
+        {
+            if (sellCost.ContainsKey(station))
+            {
+                sellCost[station] = isk;
+            }
+            else { sellCost.Add(station, isk); }
+        }
 
         public int CompareTo(Item other)
         {
@@ -174,6 +201,11 @@ namespace EvE_Build_WPF.Code
         public int Compare(KeyValuePair<int, Item> x, KeyValuePair<int, Item> y)
         {
             return x.Value.CompareTo(y.Value);
+        }
+
+        public static Item Merdge(int id, Item newObject)
+        {
+            return newObject;
         }
     }
 }

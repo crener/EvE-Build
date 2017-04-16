@@ -1,24 +1,27 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Collections.Generic;
-using System.Data;
+using System.Drawing.Drawing2D;
+using System.Windows.Documents;
 using EvE_Build_WPF.Code;
 using EvE_Build_WPF.Code.Containers;
+using YamlDotNet.Serialization.NodeDeserializers;
 
 namespace EvE_Build_WPF
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
-    public partial class MainWindow : Window
+    public partial class MainWindow
     {
-        private Dictionary<int, Item> items;
-        private Dictionary<int, MaterialItem> materials;
+        private ConcurrentDictionary<int, Item> items;
+        private ConcurrentDictionary<int, MaterialItem> materials;
         private List<MarketItem> marketItems;
-        private bool initDone = false;
+        private bool initDone;
 
         public MainWindow()
         {
@@ -27,17 +30,29 @@ namespace EvE_Build_WPF
 
         private async void SetupData(object sender, RoutedEventArgs routedEventArgs)
         {
+            Task<Dictionary<int, Item>> returnTask = Task<Dictionary<int, Item>>.Factory.StartNew(() => ItemDataAcquisition());
+
             Task[] jobs = new Task[3];
-            jobs[0] = Task.Run(() => ExecuteDataAcquisition());
+            jobs[0] = returnTask;
             jobs[1] = Task.Run(() => BuildMarketData());
             jobs[2] = Task.Run(() => LoadSettings());
 
             await Task.WhenAll(jobs);
-            await Task.Run(() => BuildMaterial());
+
+            //move the results to a new dictionary (for thread safety)
+            items = new ConcurrentDictionary<int, Item>();
+            foreach (KeyValuePair<int, Item> item in returnTask.Result)
+            {
+                items.AddOrUpdate(item.Value.ProdId, item.Value, Item.Merdge);
+            }
 
             BuildAllItems();
-            BuildTreeView();
             ManName.Content = "Select an item from the right";
+
+            await Task.Run(() => BuildMaterial());
+
+            new CentralThread(ref materials, ref items);
+            BuildTreeView();
 
             initDone = true;
         }
@@ -47,9 +62,11 @@ namespace EvE_Build_WPF
             //create initial tree view items
             foreach (MarketItem mat in marketItems)
             {
-                TreeViewItem viewItem = new TreeViewItem();
-                viewItem.Header = mat.Name;
-                viewItem.Tag = "market," + mat.MarketId;
+                TreeViewItem viewItem = new TreeViewItem
+                {
+                    Header = mat.Name,
+                    Tag = "market," + mat.MarketId
+                };
 
                 mat.TreeViewObject = viewItem;
                 if (mat.ParentGroupId == -1) GroupView.Items.Add(viewItem);
@@ -72,9 +89,11 @@ namespace EvE_Build_WPF
                 {
                     MarketItem group = marketItems.First(x => x.MarketId == item.Value.MarketGroupId);
 
-                    TreeViewItem viewItem = new TreeViewItem();
-                    viewItem.Tag = "item," + item.Key;
-                    viewItem.Header = item.Value.ProdName;
+                    TreeViewItem viewItem = new TreeViewItem
+                    {
+                        Tag = "item," + item.Key,
+                        Header = item.Value.ProdName
+                    };
 
                     group.TreeViewObject.Items.Add(viewItem);
                 }
@@ -101,16 +120,18 @@ namespace EvE_Build_WPF
             }*/
         }
 
-        private void ExecuteDataAcquisition()
+        private Dictionary<int, Item> ItemDataAcquisition()
         {
             //ensure directory exists
             FileParser.CheckSaveDirectoryExists();
 
             //memory usage gets really big as the yaml data is parsed... GC the crap out of it
-            items = FileParser.ParseBlueprintData();
+            Dictionary<int, Item> blue = FileParser.ParseBlueprintData();
             GC.Collect();
-            FileParser.ParseItemDetails(ref items);
+            FileParser.ParseItemDetails(ref blue);
             GC.Collect();
+
+            return blue;
         }
 
         private void BuildMarketData()
@@ -131,9 +152,11 @@ namespace EvE_Build_WPF
 
             foreach (Item item in sortedItems)
             {
-                ListBoxItem listItem = new ListBoxItem();
-                listItem.Content = item.ProdName;
-                listItem.Tag = item.BlueprintId;
+                ListBoxItem listItem = new ListBoxItem
+                {
+                    Content = item.ProdName,
+                    Tag = item.ProdId
+                };
 
                 SearchAllList.Items.Add(listItem);
             }
@@ -185,33 +208,128 @@ namespace EvE_Build_WPF
             ManTypeId.Content = item.ProdId;
             ManBlueType.Content = item.BlueprintId;
 
-            ManBpoCost.Content = item.BlueprintBasePrice + " isk";
-            ManVolumeItem.Content = item.ProdVolume + " m3";
+            ManBpoCost.Content = item.BlueprintBasePrice.ToString("N") + " isk";
+            ManVolumeItem.Content = item.ProdVolume.ToString("N1") + " m3";
 
-            CalculateMaterials(item);
+            CalculatePrices(item);
         }
 
+        private void CalculatePrices(Item item)
+        {
+            int cheapestStation = CalculateTotals(item);
+            CalculateMaterials(item, cheapestStation);
+        }
 
-        private void CalculateMaterials(Item item)
+        private void CalculateMaterials(Item item, int cheapStation)
         {
             ManRaw.Items.Clear();
 
             float me = 1f - (float)ManMe.Value / 100f;
 
-            foreach (Material material in item.getProductMaterial())
+            foreach (Material material in item.ProductMaterial)
             {
                 long actualQty = (long)Math.Ceiling(material.Quantity * me);
+                decimal cost = 0m;
+
+                string name = "Not found!";
+                bool advancedMaterial = false;
+                if (materials.ContainsKey(material.Type))
+                {
+                    name = materials[material.Type].Name;
+                    cost = cheapStation == 0 ? materials[material.Type].getPrice() : materials[material.Type].getPrice(cheapStation);
+                }
+                else if (items.ContainsKey(material.Type))
+                {
+                    name = items[material.Type].ProdName;
+                    cost = cheapStation == 0 ? CalculateItemPrice(item) : CalculateItemPrice(cheapStation, item);
+                    advancedMaterial = true;
+                }
 
                 DataGridMaterial gridMaterial = new DataGridMaterial
                 {
-                    Name = materials[material.Type].Name,
-                    Quantity = actualQty
+                    Name = name,
+                    Quantity = actualQty,
+                    Cost = cost.ToString("N")
                 };
+
+                if (advancedMaterial)
+                {
+                    //TODO figure out some recursion to get items to show up as children under this material
+                }
 
                 ManRaw.Items.Add(gridMaterial);
             }
         }
 
+        /// <summary>
+        /// calculates all values needed for update table
+        /// </summary>
+        /// <param name="item">the item that needs to be calculated</param>
+        /// <returns>id of the cheapest station to buy materials from</returns>
+        private int CalculateTotals(Item item)
+        {
+            ManProfit.Items.Clear();
+            int cheapestId = 0;
+            decimal cheapestPrice = decimal.MaxValue;
+
+            foreach (Station station in Settings.Stations)
+            {
+                decimal buildCost = CalculateItemPrice(station.StationId, item);
+                decimal stationBuy = item.BuyPrice.Count > 0 ? item.BuyPrice[station.StationId] : 0m;
+                decimal stationSell = item.SellPrice.Count > 0 ? item.SellPrice[station.StationId] : 0m;
+
+                DataGridStation grid = new DataGridStation();
+                grid.Name = station.StationName;
+                grid.BuildCost = buildCost.ToString("N");
+                grid.ItemCost = stationSell.ToString("N");
+                grid.SellMargin = (buildCost - stationSell).ToString("N");
+                grid.BuyMargin = (buildCost - stationBuy).ToString("N");
+                grid.IskHr = stationSell > stationBuy ? stationSell.ToString("N") : stationBuy.ToString("N");//TODO fix once build time calculations are done
+                grid.Investment = "0";//TODO fix once I know what it means...
+
+                if (buildCost < cheapestPrice)
+                {
+                    cheapestId = station.StationId;
+                    cheapestPrice = buildCost;
+                }
+
+                ManProfit.Items.Add(grid);
+            }
+
+            return cheapestId;
+        }
+
+        private decimal CalculateItemPrice(int stationId, Item item)
+        {
+            decimal price = 0m;
+            float me = 1f - (float)ManMe.Value / 100f;
+
+            foreach (Material material in item.ProductMaterial)
+            {
+                if (materials.ContainsKey(material.Type))
+                {
+                    price += materials[material.Type].getPrice(stationId) * (int)Math.Ceiling(material.Quantity * me);
+                }
+                else if (items.ContainsKey(material.Type))
+                {
+                    price += CalculateItemPrice(stationId, items[material.Type]);
+                }
+            }
+            return price;
+        }
+
+        private decimal CalculateItemPrice(Item item)
+        {
+            decimal price = decimal.MaxValue;
+
+            foreach(Station station in Settings.Stations)
+            {
+                decimal stationCost = CalculateItemPrice(station.StationId, item);
+                if(stationCost < price) price = stationCost;
+            }
+
+            return price;
+        }
 
         private void ResetDefaultState()
         {
@@ -228,12 +346,12 @@ namespace EvE_Build_WPF
 
         private void MeChange(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
-            ListBoxItem box = (ListBoxItem) SearchAllList.SelectedItem;
-            if(box == null) return;
-            
+            ListBoxItem box = (ListBoxItem)SearchAllList.SelectedItem;
+            if (box == null) return;
+
             Item item = items[(int)box.Tag];
 
-            CalculateMaterials(item);
+            CalculatePrices(item);
         }
     }
 }

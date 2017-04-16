@@ -63,5 +63,17 @@
     {
         public string Name { get; set; }
         public long Quantity { get; set; }
+        public string Cost { get; set; }
+    }
+
+    public class DataGridStation
+    {
+        public string Name { get; set; }
+        public string BuildCost { get; set; }
+        public string ItemCost { get; set; }
+        public string SellMargin { get; set; }
+        public string BuyMargin { get; set; }
+        public string IskHr { get; set; }
+        public string Investment { get; set; }
     }
 }

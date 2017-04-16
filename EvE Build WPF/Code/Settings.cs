@@ -9,11 +9,13 @@ namespace EvE_Build_WPF.Code
 {
     static class Settings
     {
-        public static SettingObject settings { get; private set; }
+        public static event EventHandler settingsChanged;
+
         private static readonly string DirectoryPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + DirectorySeparatorChar + "EVE" +
                       DirectorySeparatorChar + "EvE-Build";
+        private static SettingObject settings { get; set; }
         private static readonly string FilePath = DirectoryPath + DirectorySeparatorChar + "settings.txt";
-        private static bool isDone = false;
+        private static bool isDone;
 
         public static void Load()
         {
@@ -36,6 +38,50 @@ namespace EvE_Build_WPF.Code
             settings = JsonConvert.DeserializeObject<SettingObject>(json);
         }
 
+        public static Station[] Stations
+        {
+            get { return settings.Stations.ToArray(); }
+        }
+
+        public static int UpdateDelay
+        {
+            get { return settings.ThreadUpdateInterval; }
+            set
+            {
+                settings.ThreadUpdateInterval = value;
+                TriggerSettingChanged();
+            }
+        }
+
+        public static int WebTimeout
+        {
+            get { return settings.WebRequestTimeout; }
+            set
+            {
+                settings.WebRequestTimeout = value;
+                TriggerSettingChanged();
+            }
+        }
+
+        public static void RemoveStation(int id)
+        {
+            for (int i = 0; i < settings.Stations.Count; i++)
+            {
+                if (settings.Stations[i].StationId == id)
+                {
+                    settings.Stations.RemoveAt(i);
+                    TriggerSettingChanged();
+                    return;
+                }
+            }
+        }
+
+        public static void AddStation(Station newStation)
+        {
+            settings.Stations.Add(newStation);
+            TriggerSettingChanged();
+        }
+
         public static void Save()
         {
             if (!File.Exists(DirectoryPath)) Directory.CreateDirectory(DirectoryPath);
@@ -46,6 +92,13 @@ namespace EvE_Build_WPF.Code
             {
                 file.Write(json);
             }
+        }
+
+        private static void TriggerSettingChanged()
+        {
+            if (settingsChanged == null) return;
+
+            settingsChanged(settings, EventArgs.Empty);
         }
 
         private static SettingObject CreateDefaultValues()
@@ -64,10 +117,14 @@ namespace EvE_Build_WPF.Code
         public class SettingObject
         {
             public List<Station> Stations { get; set; }
+            public int ThreadUpdateInterval { get; set; }
+            public int WebRequestTimeout { get; set; }
 
             public SettingObject()
             {
                 Stations = new List<Station>();
+                ThreadUpdateInterval = 60;
+                WebRequestTimeout = 9;
             }
         }
     }

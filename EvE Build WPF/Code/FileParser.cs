@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections;
+using System.Collections.Concurrent;
 using System.IO;
 using System.Linq;
 using System.Collections.Generic;
@@ -262,7 +262,9 @@ namespace EvE_Build_WPF.Code
                                     break;
                                 case "published":
                                     if (!bool.Parse(allNodes.Value.ToString()))
+                                    {
                                         itemCollection.Remove(item.BlueprintId);
+                                    }
                                     break;
                                 case "volume":
                                     decimal volume;
@@ -334,16 +336,16 @@ namespace EvE_Build_WPF.Code
             return collection;
         }
 
-        public static Dictionary<int, MaterialItem> GatherMaterials(Dictionary<int, Item> items)
+        public static ConcurrentDictionary<int, MaterialItem> GatherMaterials(ConcurrentDictionary<int, Item> items)
         {
-            Dictionary<int, MaterialItem> materials = new Dictionary<int, MaterialItem>();
+            ConcurrentDictionary<int, MaterialItem> materials = new ConcurrentDictionary<int, MaterialItem>();
 
             foreach (KeyValuePair<int, Item> item in items)
             {
-                foreach (Material material in item.Value.getProductMaterial())
+                foreach (Material material in item.Value.ProductMaterial)
                 {
                     if (!materials.ContainsKey(material.Type) && !items.ContainsKey(material.Type))
-                        materials.Add(material.Type, new MaterialItem(material.Type));
+                        materials.AddOrUpdate(material.Type, new MaterialItem(material.Type), MaterialItem.merdge);
                 }
             }
 
