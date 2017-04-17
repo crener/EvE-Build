@@ -60,8 +60,8 @@
 
                     <!--Slide Controls-->
                     <DockPanel Grid.Row="3" Grid.Column="0">
-                        <Slider x:Name="ManMe" VerticalAlignment="Center" Width="80" SmallChange="1" Value="10" TickPlacement="BottomRight" IsSnapToTickEnabled="True" ValueChanged="MeChange"/>
-                        <Slider x:Name="ManTe" VerticalAlignment="Center" Width="80" Maximum="20" SmallChange="1" Value="20" TickPlacement="BottomRight" IsSnapToTickEnabled="True" HorizontalAlignment="Left" Margin="16,0,0,0"/>
+                        <Slider x:Name="ManMe" VerticalAlignment="Center" Width="80" SmallChange="1" Value="10" TickPlacement="BottomRight" IsSnapToTickEnabled="True" ValueChanged="ParameterChange"/>
+                        <Slider x:Name="ManTe" VerticalAlignment="Center" Width="80" Maximum="20" SmallChange="1" Value="20" TickPlacement="BottomRight" IsSnapToTickEnabled="True" HorizontalAlignment="Left" ValueChanged="ParameterChange" Margin="16,0,0,0"/>
                     </DockPanel>
 
                     <!--Right Side Controls-->
@@ -95,7 +95,7 @@
                             <DataGridTextColumn Header="Build Cost" Width="*" Binding="{Binding BuildCost}"/>
                             <DataGridTextColumn Header="Item Cost" Width="*" Binding="{Binding ItemCost}"/>
                             <DataGridTextColumn Header="Sell Margin" Width="*" Binding="{Binding SellMargin}"/>
-                            <DataGridTextColumn Header="Buy Margin" Width="*" Binding="{Binding SellMargin}"/>
+                            <DataGridTextColumn Header="Buy Margin" Width="*" Binding="{Binding BuyMargin}"/>
                             <DataGridTextColumn Header="Isk/Hr" Width="*" Binding="{Binding IskHr}"/>
                         </DataGrid.Columns>
                     </DataGrid>

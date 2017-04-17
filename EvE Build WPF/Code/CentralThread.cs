@@ -17,6 +17,7 @@ namespace EvE_Build_WPF.Code
         private static readonly string typeSeparator = "&typeid=";
         private static readonly int singleFetchAmount = 100;
         private static readonly int averageIdLength = 6;
+        public static event EventHandler stationDataUpdated;
 
         private ConcurrentDictionary<int, MaterialItem> materials;
         private ConcurrentDictionary<int, Item> items;
@@ -29,7 +30,7 @@ namespace EvE_Build_WPF.Code
             this.materials = materials;
             this.items = items;
 
-            Settings.settingsChanged += RefreshSettings;
+            Settings.SettingsChanged += RefreshSettings;
             RefreshSettings(null, null); //initial load of settings
 
             Thread thread = new Thread(UpdateCycle)
@@ -79,9 +80,12 @@ namespace EvE_Build_WPF.Code
                         details.Append(typeSeparator + enumerator.Current.Value.ProdId);
                     ++count;
                 }
+                ++cycle;
 
                 ExtractPrices(WebRequest(details.ToString()), stationId);
             } while (count != items.Count);
+
+            if (stationDataUpdated != null) stationDataUpdated(null, EventArgs.Empty);
         }
 
         private void MaterialCycle(int stationId)
@@ -103,6 +107,8 @@ namespace EvE_Build_WPF.Code
 
                 ExtractPrices(WebRequest(details.ToString()), stationId);
             } while (count != materials.Count);
+
+            if (stationDataUpdated != null) stationDataUpdated(null, EventArgs.Empty);
         }
 
         /// <summary>
@@ -139,7 +145,7 @@ namespace EvE_Build_WPF.Code
                             int depth = reader.Depth;
                             while (reader.Read() && (reader.Depth != depth || reader.NodeType == XmlNodeType.EndElement))
                             {
-                                if (reader.Name == "min")
+                                if (reader.Name == "max")
                                 {
                                     reader.Read();
                                     decimal cost;
@@ -154,7 +160,7 @@ namespace EvE_Build_WPF.Code
                             int depth = reader.Depth;
                             while (reader.Read() && (reader.Depth != depth || reader.NodeType == XmlNodeType.EndElement))
                             {
-                                if (reader.Name == "max")
+                                if (reader.Name == "min")
                                 {
                                     reader.Read();
                                     decimal cost;

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.IO;
 using Newtonsoft.Json;
 using System.Collections.Generic;
@@ -10,7 +9,7 @@ namespace EvE_Build_WPF.Code
 {
     static class Settings
     {
-        public static event EventHandler settingsChanged;
+        public static event EventHandler SettingsChanged;
 
         private static readonly string DirectoryPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + DirectorySeparatorChar + "EVE" +
                       DirectorySeparatorChar + "EvE-Build";
@@ -89,15 +88,27 @@ namespace EvE_Build_WPF.Code
             }
         }
 
-        public static bool isItemBlocked(int itemId)
-        {
-            return blockList.Contains(itemId);
-        }
-
         public static void AddStation(Station newStation)
         {
             settings.Stations.Add(newStation);
             TriggerSettingChanged();
+        }
+
+        public static Station SpecificStation(int searchStation)
+        {
+            Station[] stations = Stations;
+            foreach (Station station in stations)
+            {
+                if (station.StationId == searchStation)
+                    return station;
+            }
+
+            return null;
+        }
+
+        public static bool isItemBlocked(int itemId)
+        {
+            return blockList.Contains(itemId);
         }
 
         public static void Save()
@@ -114,9 +125,9 @@ namespace EvE_Build_WPF.Code
 
         private static void TriggerSettingChanged()
         {
-            if (settingsChanged == null) return;
+            if (SettingsChanged == null) return;
 
-            settingsChanged(settings, EventArgs.Empty);
+            SettingsChanged(settings, EventArgs.Empty);
         }
 
         private static SettingObject CreateDefaultValues()

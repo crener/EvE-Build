@@ -55,6 +55,11 @@ namespace EvE_Build_WPF.Code.Containers
 
         public void setBuyCost(int currentStation, decimal cost)
         {
+            //ignore as this isn't needed
+        }
+
+        public void setSellCost(int currentStation, decimal cost)
+        {
             if (prices.ContainsKey(currentStation))
             {
                 prices[currentStation] = cost;
@@ -63,11 +68,6 @@ namespace EvE_Build_WPF.Code.Containers
             {
                 prices.Add(currentStation, cost);
             }
-        }
-
-        public void setSellCost(int currentStation, decimal cost)
-        {
-            //ignore as there are no sell prices for items
         }
     }
 }

@@ -5,6 +5,8 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Collections.Generic;
+using System.Threading;
+using System.Windows.Threading;
 using EvE_Build_WPF.Code;
 using EvE_Build_WPF.Code.Containers;
 
@@ -39,9 +41,7 @@ namespace EvE_Build_WPF
             //move the results to a new dictionary (for thread safety)
             items = new ConcurrentDictionary<int, Item>();
             foreach (KeyValuePair<int, Item> item in returnTask.Result)
-            {
                 items.AddOrUpdate(item.Value.ProdId, item.Value, Item.Merdge);
-            }
 
             BuildAllItems();
             ManName.Content = "Select an item from the right";
@@ -49,9 +49,33 @@ namespace EvE_Build_WPF
             await Task.Run(() => BuildMaterial());
 
             new CentralThread(ref materials, ref items);
+            CentralThread.stationDataUpdated += ThreadUpdateStationsInvoke;
             BuildTreeView();
 
             initDone = true;
+        }
+
+        private void ThreadUpdateStationsInvoke(object sender, EventArgs eventArgs)
+        {
+            Dispatcher.Invoke(() => ThreadUpdateStations(sender, eventArgs));
+        }
+
+        private void ThreadUpdateStations(object sender, EventArgs eventArgs)
+        {
+            ListBox allItems = SearchAllList;
+            try
+            {
+                if (allItems.SelectedIndex == -1) return;
+
+                ListBoxItem selectedItem = (ListBoxItem)allItems.SelectedItem;
+                if (selectedItem.Tag == null) return;
+
+                int itemId = (int)selectedItem.Tag;
+                if (!items.ContainsKey(itemId)) return;
+
+                CalculatePrices(items[itemId]);
+            }
+            catch (InvalidOperationException) { }
         }
 
         private void BuildTreeView()
@@ -226,8 +250,33 @@ namespace EvE_Build_WPF
 
         private void CalculatePrices(Item item)
         {
-            int cheapestStation = CalculateTotals(item);
-            CalculateMaterials(item, cheapestStation);
+            int cheapStation = CalculateTotals(item);
+            CalculateMaterials(item, cheapStation);
+
+            //work out the bpo payback amount
+            if (item.BuyPrice.ContainsKey(cheapStation))
+            {
+                decimal buildCost = CalculateItemPrice(cheapStation, item);
+                decimal stationBuy = item.BuyPrice.Count > 0 && item.BuyPrice.ContainsKey(cheapStation)
+                    ? item.BuyPrice[cheapStation]
+                    : 0m;
+                decimal stationSell = item.SellPrice.Count > 0 && item.SellPrice.ContainsKey(cheapStation)
+                    ? item.SellPrice[cheapStation]
+                    : 0m;
+
+                decimal sellProfit = stationSell * item.ProdQty - buildCost;
+                decimal buyProfit = stationBuy * item.ProdQty - buildCost;
+                decimal bestPrice = sellProfit < buyProfit ? sellProfit : buyProfit;
+
+                if (bestPrice <= 0)
+                    ManBpoRuns.Content = "Not Profitable";
+                else
+                {
+                    int runs = (int)Math.Ceiling(item.BlueprintBasePrice / bestPrice);
+                    ManBpoRuns.Content = runs + (runs == 1 ? " run in " : " runs in ") + Settings.SpecificStation(cheapStation).StationName;
+                }
+            }
+            else ManBpoRuns.Content = "Not enough data";
         }
 
         private void CalculateMaterials(Item item, int cheapStation)
@@ -275,31 +324,38 @@ namespace EvE_Build_WPF
         /// calculates all values needed for update table
         /// </summary>
         /// <param name="item">the item that needs to be calculated</param>
-        /// <returns>id of the cheapest station to buy materials from</returns>
+        /// <returns>id of the highest margin system</returns>
         private int CalculateTotals(Item item)
         {
             ManProfit.Items.Clear();
             int cheapestId = 0;
-            decimal cheapestPrice = decimal.MaxValue;
+            decimal bestMargin = decimal.MaxValue;
+            float te = 1f - (float)ManTe.Value / 100f;
+            float buildTime = item.ProdTime / 60f / 60f * te;
 
             foreach (Station station in Settings.Stations)
             {
                 decimal buildCost = CalculateItemPrice(station.StationId, item);
                 decimal stationBuy = item.BuyPrice.Count > 0 && item.BuyPrice.ContainsKey(station.StationId) ? item.BuyPrice[station.StationId] : 0m;
-                decimal stationSell = item.SellPrice.Count > 0 && item.BuyPrice.ContainsKey(station.StationId) ? item.SellPrice[station.StationId] : 0m;
+                decimal stationSell = item.SellPrice.Count > 0 && item.SellPrice.ContainsKey(station.StationId) ? item.SellPrice[station.StationId] : 0m;
+
+                decimal sellProfit = stationSell * item.ProdQty - buildCost;
+                decimal buyProfit = stationBuy * item.ProdQty - buildCost;
+                decimal bestPrice = sellProfit > buyProfit ? sellProfit : buyProfit;
+                decimal hour = bestPrice / (decimal)buildTime;
 
                 DataGridStation grid = new DataGridStation();
                 grid.Name = station.StationName;
                 grid.BuildCost = buildCost.ToString("N");
                 grid.ItemCost = stationSell.ToString("N");
-                grid.SellMargin = (stationSell * item.ProdQty - buildCost).ToString("N");
-                grid.BuyMargin = (stationBuy * item.ProdQty - buildCost).ToString("N");
-                grid.IskHr = stationSell > stationBuy ? stationSell.ToString("N") : stationBuy.ToString("N");//TODO fix once build time calculations are done
+                grid.SellMargin = sellProfit.ToString("N");
+                grid.BuyMargin = buyProfit.ToString("N");
+                grid.IskHr = hour.ToString("N");
 
-                if (buildCost < cheapestPrice)
+                if (bestPrice < bestMargin)
                 {
                     cheapestId = station.StationId;
-                    cheapestPrice = buildCost;
+                    bestMargin = bestPrice;
                 }
 
                 ManProfit.Items.Add(grid);
@@ -315,13 +371,15 @@ namespace EvE_Build_WPF
 
             foreach (Material material in item.ProductMaterial)
             {
+                int qty = (int)Math.Ceiling(material.Quantity * me);
+
                 if (materials.ContainsKey(material.Type))
                 {
-                    price += materials[material.Type].getPrice(stationId) * (int)Math.Ceiling(material.Quantity * me);
+                    price += materials[material.Type].getPrice(stationId) * qty;
                 }
                 else if (items.ContainsKey(material.Type))
                 {
-                    price += CalculateItemPrice(stationId, items[material.Type]);
+                    price += CalculateItemPrice(stationId, items[material.Type]) * qty;
                 }
             }
             return price;
@@ -353,7 +411,7 @@ namespace EvE_Build_WPF
             ManVolumeMaterial.Content = "0 m3";
         }
 
-        private void MeChange(object sender, RoutedPropertyChangedEventArgs<double> e)
+        private void ParameterChange(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
             ListBoxItem box = (ListBoxItem)SearchAllList.SelectedItem;
             if (box == null) return;
