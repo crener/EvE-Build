@@ -52,11 +52,12 @@ namespace EvE_Build_WPF.Code
         {
             do
             {
+                //get all material data first
                 foreach (Station station in stations)
-                {
-                    ItemCycle(station.StationId);
                     MaterialCycle(station.StationId);
-                }
+
+                foreach (Station station in stations)
+                    ItemCycle(station.StationId);
 
                 await Task.Delay(updateDelay);
             } while (true);
@@ -65,50 +66,53 @@ namespace EvE_Build_WPF.Code
         private void ItemCycle(int stationId)
         {
             int count = 0, cycle = 1;
+            IEnumerator<KeyValuePair<int, Item>> enumerator = items.GetEnumerator();
 
             do
             {
                 StringBuilder details = new StringBuilder(eveCentral.Length + stationId.ToString().Length + singleFetchAmount * (typeSeparator.Length + averageIdLength));
                 details.Append(eveCentral).Append(stationId);
-
-                foreach (KeyValuePair<int, Item> item in items)
+                
+                while (count < singleFetchAmount * cycle && count < items.Count && enumerator.MoveNext())
                 {
-                    if (count < singleFetchAmount * cycle && count < items.Count)
-                        details.Append(typeSeparator + item.Value.ProdId);
-                    else break;
+                    if (!Settings.isItemBlocked(enumerator.Current.Value.ProdId))
+                        details.Append(typeSeparator + enumerator.Current.Value.ProdId);
                     ++count;
                 }
-                ++cycle;
 
                 ExtractPrices(WebRequest(details.ToString()), stationId);
-            } while (count == items.Count);
+            } while (count != items.Count);
         }
 
         private void MaterialCycle(int stationId)
         {
             int count = 0, cycle = 1;
+            IEnumerator<KeyValuePair<int, MaterialItem>> enumerator = materials.GetEnumerator();
 
             do
             {
                 StringBuilder details = new StringBuilder(eveCentral.Length + stationId.ToString().Length + singleFetchAmount * (typeSeparator.Length + averageIdLength));
                 details.Append(eveCentral).Append(stationId);
-
-                foreach (KeyValuePair<int, MaterialItem> material in materials)
+                
+                while (count < singleFetchAmount * cycle && count < materials.Count && enumerator.MoveNext())
                 {
-                    if (count < singleFetchAmount * cycle && count < items.Count)
-                        details.Append(typeSeparator + material.Value.Id);
-                    else break;
+                    details.Append(typeSeparator + enumerator.Current.Value.Id);
                     ++count;
                 }
                 ++cycle;
 
                 ExtractPrices(WebRequest(details.ToString()), stationId);
-            } while (count == items.Count);
+            } while (count != materials.Count);
         }
 
+        /// <summary>
+        /// parses the eve central data via the xml reader
+        /// </summary>
+        /// <param name="xmlData">data returned from eve central</param>
+        /// <param name="currentStation">the int id of the station that the data is from</param>
         private void ExtractPrices(string xmlData, int currentStation)
         {
-            if (String.IsNullOrEmpty(xmlData)) return;
+            if (string.IsNullOrEmpty(xmlData)) return;
             XmlReader reader = XmlReader.Create(new StringReader(xmlData));
 
             while (reader.Read())
@@ -140,9 +144,7 @@ namespace EvE_Build_WPF.Code
                                     reader.Read();
                                     decimal cost;
                                     if (decimal.TryParse(reader.Value, out cost))
-                                    {
                                         item.setBuyCost(currentStation, cost);
-                                    }
                                     break;
                                 }
                             }
@@ -157,9 +159,7 @@ namespace EvE_Build_WPF.Code
                                     reader.Read();
                                     decimal cost;
                                     if (decimal.TryParse(reader.Value, out cost))
-                                    {
                                         item.setSellCost(currentStation, cost);
-                                    }
                                     break;
                                 }
                             }
@@ -189,7 +189,10 @@ namespace EvE_Build_WPF.Code
 
                 return responseString;
             }
-            catch (WebException web) { }
+            catch (WebException web)
+            {
+
+            }
             catch (NullReferenceException nre) { }
 
             return "";

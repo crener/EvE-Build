@@ -5,11 +5,8 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Collections.Generic;
-using System.Drawing.Drawing2D;
-using System.Windows.Documents;
 using EvE_Build_WPF.Code;
 using EvE_Build_WPF.Code.Containers;
-using YamlDotNet.Serialization.NodeDeserializers;
 
 namespace EvE_Build_WPF
 {
@@ -171,7 +168,16 @@ namespace EvE_Build_WPF
         {
             if (!initDone) return;
 
-            ChangeManufactureItem((int)((ListBoxItem)((ListBox)sender).SelectedItem).Tag);
+            ListBox allItems = (ListBox)sender;
+            if (allItems.SelectedItem == null) return;
+
+            ListBoxItem selectedItem = (ListBoxItem)allItems.SelectedItem;
+            if (selectedItem.Tag == null) return;
+
+            int itemId = (int)selectedItem.Tag;
+            if (!items.ContainsKey(itemId)) return;
+
+            ChangeManufactureItem(itemId);
         }
 
         private void SearchTextChanged(object sender, TextChangedEventArgs e)
@@ -179,7 +185,11 @@ namespace EvE_Build_WPF
             ResetDefaultState();
 
             string searchTerm = ((TextBox)sender).Text.ToLower();
-            if (string.IsNullOrEmpty(searchTerm)) return;
+            if (string.IsNullOrEmpty(searchTerm))
+            {
+                BuildAllItems();
+                return;
+            }
             if (items.Count <= 0) return;
 
             List<KeyValuePair<int, Item>> results = new List<KeyValuePair<int, Item>>(
@@ -193,7 +203,7 @@ namespace EvE_Build_WPF
                 ListBoxItem listItem = new ListBoxItem
                 {
                     Content = item.Value.ProdName,
-                    Tag = item.Value.BlueprintId
+                    Tag = item.Value.ProdId
                 };
 
                 SearchAllList.Items.Add(listItem);
@@ -236,7 +246,7 @@ namespace EvE_Build_WPF
                 if (materials.ContainsKey(material.Type))
                 {
                     name = materials[material.Type].Name;
-                    cost = cheapStation == 0 ? materials[material.Type].getPrice() : materials[material.Type].getPrice(cheapStation);
+                    cost = cheapStation == 0 ? materials[material.Type].getPrice() * actualQty : materials[material.Type].getPrice(cheapStation) * actualQty;
                 }
                 else if (items.ContainsKey(material.Type))
                 {
@@ -275,17 +285,16 @@ namespace EvE_Build_WPF
             foreach (Station station in Settings.Stations)
             {
                 decimal buildCost = CalculateItemPrice(station.StationId, item);
-                decimal stationBuy = item.BuyPrice.Count > 0 ? item.BuyPrice[station.StationId] : 0m;
-                decimal stationSell = item.SellPrice.Count > 0 ? item.SellPrice[station.StationId] : 0m;
+                decimal stationBuy = item.BuyPrice.Count > 0 && item.BuyPrice.ContainsKey(station.StationId) ? item.BuyPrice[station.StationId] : 0m;
+                decimal stationSell = item.SellPrice.Count > 0 && item.BuyPrice.ContainsKey(station.StationId) ? item.SellPrice[station.StationId] : 0m;
 
                 DataGridStation grid = new DataGridStation();
                 grid.Name = station.StationName;
                 grid.BuildCost = buildCost.ToString("N");
                 grid.ItemCost = stationSell.ToString("N");
-                grid.SellMargin = (buildCost - stationSell).ToString("N");
-                grid.BuyMargin = (buildCost - stationBuy).ToString("N");
+                grid.SellMargin = (stationSell * item.ProdQty - buildCost).ToString("N");
+                grid.BuyMargin = (stationBuy * item.ProdQty - buildCost).ToString("N");
                 grid.IskHr = stationSell > stationBuy ? stationSell.ToString("N") : stationBuy.ToString("N");//TODO fix once build time calculations are done
-                grid.Investment = "0";//TODO fix once I know what it means...
 
                 if (buildCost < cheapestPrice)
                 {
@@ -322,10 +331,10 @@ namespace EvE_Build_WPF
         {
             decimal price = decimal.MaxValue;
 
-            foreach(Station station in Settings.Stations)
+            foreach (Station station in Settings.Stations)
             {
                 decimal stationCost = CalculateItemPrice(station.StationId, item);
-                if(stationCost < price) price = stationCost;
+                if (stationCost < price) price = stationCost;
             }
 
             return price;

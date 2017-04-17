@@ -74,6 +74,5 @@
         public string SellMargin { get; set; }
         public string BuyMargin { get; set; }
         public string IskHr { get; set; }
-        public string Investment { get; set; }
     }
 }

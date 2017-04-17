@@ -262,9 +262,7 @@ namespace EvE_Build_WPF.Code
                                     break;
                                 case "published":
                                     if (!bool.Parse(allNodes.Value.ToString()))
-                                    {
                                         itemCollection.Remove(item.BlueprintId);
-                                    }
                                     break;
                                 case "volume":
                                     decimal volume;

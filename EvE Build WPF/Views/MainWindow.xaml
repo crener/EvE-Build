@@ -97,7 +97,6 @@
                             <DataGridTextColumn Header="Sell Margin" Width="*" Binding="{Binding SellMargin}"/>
                             <DataGridTextColumn Header="Buy Margin" Width="*" Binding="{Binding SellMargin}"/>
                             <DataGridTextColumn Header="Isk/Hr" Width="*" Binding="{Binding IskHr}"/>
-                            <DataGridTextColumn Header="Investment" Width="*" Binding="{Binding Investment}"/>
                         </DataGrid.Columns>
                     </DataGrid>
 

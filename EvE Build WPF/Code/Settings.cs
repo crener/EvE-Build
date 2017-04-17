@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.IO;
 using Newtonsoft.Json;
 using System.Collections.Generic;
@@ -17,11 +18,14 @@ namespace EvE_Build_WPF.Code
         private static readonly string FilePath = DirectoryPath + DirectorySeparatorChar + "settings.txt";
         private static bool isDone;
 
+        private static List<int> blockList { get; set; }
+
         public static void Load()
         {
             if (!isDone && (!Directory.Exists(DirectoryPath) || !File.Exists(FilePath)))
             {
                 settings = CreateDefaultValues();
+
                 isDone = true;
 
                 Save();
@@ -29,6 +33,15 @@ namespace EvE_Build_WPF.Code
             }
 
             string json = "";
+            blockList = new List<int>
+                {
+                    44102, //Defender Launcher
+                    44111, //Tahron's Custom Heat Sink
+                    44112, //Vadari's Custom Gyrostabilizer
+                    44113, //Kaatara's Custom Magnetic Field Stabilizer
+                    44114, //Torelle's Custom Magnetic Field Stabilizer
+                    45010 //Focused Warp Scrambling Script
+                };
 
             using (StreamReader file = new StreamReader(FilePath))
             {
@@ -74,6 +87,11 @@ namespace EvE_Build_WPF.Code
                     return;
                 }
             }
+        }
+
+        public static bool isItemBlocked(int itemId)
+        {
+            return blockList.Contains(itemId);
         }
 
         public static void AddStation(Station newStation)
