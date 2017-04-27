@@ -6,7 +6,7 @@
         x:Class="EvE_Build_WPF.MainWindow"
         mc:Ignorable="d"
         Title="EvE Build" Height="460" Width="800" MinWidth="560" MinHeight="420"
-    Loaded="SetupData">
+    Loaded="SetupData" Icon="../Resources/Icon.ico">
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="200*" MinWidth="120"/>

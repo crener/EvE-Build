@@ -34,7 +34,8 @@ namespace EvE_Build_WPF.Code
         private Dictionary<int, decimal> buyCost = new Dictionary<int, decimal>();
         private Dictionary<int, decimal> sellCost = new Dictionary<int, decimal>();
 
-        public int FactionId { get; set; }
+        public Faction FactionId { get; set; }
+        public bool isFaction { get; set; }
         public string SofFaction { get; set; }
         public int GroudId { get; set; }
         public int MarketGroupId { get; set; }

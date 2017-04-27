@@ -8,6 +8,7 @@ namespace EvE_Build_WPF.Code.Containers
         public int ParentGroupId { get; set; }
         public string Name { get; set; }
         public string Description { get; set; }
-        public TreeViewItem TreeViewObject{ get; set; }
+        public TreeViewItem TreeViewObject { get; set; }
+        public bool Used { get; set; }
     }
 }

@@ -226,7 +226,7 @@ namespace EvE_Build_WPF.Code
                                 break;
                             case "factionID":
                                 if (int.TryParse(item.Value.ToString(), out temp))
-                                    current.FactionId = temp;
+                                    current.FactionId = (Faction)Enum.Parse(typeof(Faction), item.Value.ToString());
                                 break;
                             case "sofFactionName":
                                 current.SofFaction = item.Value.ToString();
@@ -272,7 +272,10 @@ namespace EvE_Build_WPF.Code
                                 case "factionID":
                                     int faction;
                                     if (int.TryParse(allNodes.Value.ToString(), out faction))
-                                        item.FactionId = faction;
+                                        item.FactionId = (Faction)Enum.Parse(typeof(Faction), allNodes.Value.ToString());
+                                    break;
+                                case "sofFactionName":
+                                    item.SofFaction = allNodes.Value.ToString();
                                     break;
                                 case "marketGroupID":
                                     int temp;

@@ -11,6 +11,24 @@
         Ore = 128
     }
 
+    public enum Faction
+    {
+        Unknown,
+        Amarr = 500003,
+        Caldari = 500001,
+        Gallente = 500004,
+        Minmatar = 500002,
+        Jove = 500017,
+        Ore = 500014,
+        Sanshas_Nation = 500019,
+        Guristas_Pirates = 500010,
+        Angel_Cartel = 500011,
+        Serpentis = 500020,
+        Blood_Raiders = 500012,
+        Sisters_of_EVE = 500016,
+        Mordus_Legion = 500018,
+    }
+
     public class Material
     {
         public int Type { get; private set; }

@@ -90,7 +90,6 @@ namespace EvE_Build_WPF
                 };
 
                 mat.TreeViewObject = viewItem;
-                if (mat.ParentGroupId == -1) GroupView.Items.Add(viewItem);
             }
 
             //link tree view items to get the correct hierarchy 
@@ -109,6 +108,8 @@ namespace EvE_Build_WPF
                 try
                 {
                     MarketItem group = marketItems.First(x => x.MarketId == item.Value.MarketGroupId);
+                    if (group.Name.Contains("Faction"))
+                        item.Value.isFaction = true;
 
                     TreeViewItem viewItem = new TreeViewItem
                     {
@@ -117,6 +118,20 @@ namespace EvE_Build_WPF
                     };
 
                     group.TreeViewObject.Items.Add(viewItem);
+                    group.Used = true;
+
+                    //Ensure that the market id and market category are not culled later
+                    MarketItem search = marketItems.First(x => x.MarketId == group.ParentGroupId);
+                    if (search != null && !search.Used)
+                    {
+                        while (!search.Used)
+                        {
+                            search.Used = true;
+                            if (search.ParentGroupId == -1) break;
+
+                            search = marketItems.First(x => x.MarketId == search.ParentGroupId);
+                        }
+                    }
                 }
                 catch (InvalidOperationException)
                 {
@@ -124,21 +139,18 @@ namespace EvE_Build_WPF
                 }
             }
 
-            //clear out all the market groups that have no items
-            /*foreach (MarketItem item in marketItems)
+            //Remove unused items
+            for (int i = marketItems.Count - 1; i >= 0; i--)
             {
-                bool alive = item.TreeViewObject.Items.Count != 0;
-                alive = alive && ((string) ((TreeViewItem) item.TreeViewObject.Items.GetItemAt(0)).Tag).Contains("market");
+                if (marketItems[i].Used) continue;
+                marketItems.RemoveAt(i);
+            }
 
-                if (!alive)
-                {
-                    if (item.ParentGroupId != -1) marketItems.First(x => x.MarketId == item.ParentGroupId).TreeViewObject.Items.Remove(item.TreeViewObject);
-                    if (item.ParentGroupId == -1) GroupView.Items.Remove(item.TreeViewObject);
-
-                    //clear out the reference so GC can grab it
-                    item.TreeViewObject = null;
-                }
-            }*/
+            //clear out all the market groups that have no items
+            foreach (MarketItem item in marketItems)
+            {
+                if (item.ParentGroupId == -1 && item.Used) GroupView.Items.Add(item.TreeViewObject);
+            }
         }
 
         private Dictionary<int, Item> ItemDataAcquisition()
@@ -173,6 +185,9 @@ namespace EvE_Build_WPF
 
             foreach (Item item in sortedItems)
             {
+                if (item.ProdName.StartsWith("'") || item.ProdName.StartsWith("‘") || item.isFaction)
+                    continue;
+
                 ListBoxItem listItem = new ListBoxItem
                 {
                     Content = item.ProdName,
@@ -181,6 +196,12 @@ namespace EvE_Build_WPF
 
                 SearchAllList.Items.Add(listItem);
             }
+        }
+
+        private bool MainFaction(Faction race)
+        {
+            return race == Faction.Amarr || race == Faction.Caldari || race == Faction.Gallente || race == Faction.Minmatar ||
+                         race == Faction.Ore || race == Faction.Jove;
         }
 
         private void LoadSettings()
