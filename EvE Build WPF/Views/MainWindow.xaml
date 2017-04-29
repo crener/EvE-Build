@@ -24,7 +24,7 @@
                 </DockPanel>
             </TabItem>
             <TabItem Header="Groups" x:Name="SearchGroups">
-                <TreeView x:Name="GroupView" Margin="0"/>
+                <TreeView x:Name="GroupView" Margin="0" SelectedItemChanged="GroupViewChanged"/>
             </TabItem>
         </TabControl>
         <GridSplitter Grid.Column="1" IsManipulationEnabled="True" HorizontalAlignment="Stretch" />

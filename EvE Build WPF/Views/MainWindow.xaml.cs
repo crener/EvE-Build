@@ -60,16 +60,10 @@ namespace EvE_Build_WPF
 
         private void ThreadUpdateStations(object sender, EventArgs eventArgs)
         {
-            ListBox allItems = SearchAllList;
             try
             {
-                if (allItems.SelectedIndex == -1) return;
-
-                ListBoxItem selectedItem = (ListBoxItem)allItems.SelectedItem;
-                if (selectedItem.Tag == null) return;
-
-                int itemId = (int)selectedItem.Tag;
-                if (!items.ContainsKey(itemId)) return;
+                if (ManTypeId.Content.ToString() == "TypeID" || ManTypeId.Content.ToString() == "") return;
+                int itemId = int.Parse(ManTypeId.Content.ToString());
 
                 CalculatePrices(items[itemId]);
             }
@@ -114,7 +108,7 @@ namespace EvE_Build_WPF
 
                     TreeViewItem viewItem = new TreeViewItem
                     {
-                        Tag = "item," + item.Key,
+                        Tag = "item," + item.Value.ProdId,
                         Header = item.Value.ProdName
                     };
 
@@ -211,61 +205,9 @@ namespace EvE_Build_WPF
             }
         }
 
-        private bool MainFaction(Faction race)
-        {
-            return race == Faction.Amarr || race == Faction.Caldari || race == Faction.Gallente || race == Faction.Minmatar ||
-                         race == Faction.Ore || race == Faction.Jove;
-        }
-
         private void LoadSettings()
         {
             Settings.Load();
-        }
-
-        private void SearchListChanged(object sender, SelectionChangedEventArgs e)
-        {
-            if (!initDone) return;
-
-            ListBox allItems = (ListBox)sender;
-            if (allItems.SelectedItem == null) return;
-
-            ListBoxItem selectedItem = (ListBoxItem)allItems.SelectedItem;
-            if (selectedItem.Tag == null) return;
-
-            int itemId = (int)selectedItem.Tag;
-            if (!items.ContainsKey(itemId)) return;
-
-            ChangeManufactureItem(itemId);
-        }
-
-        private void SearchTextChanged(object sender, TextChangedEventArgs e)
-        {
-            ResetDefaultState();
-
-            string searchTerm = ((TextBox)sender).Text.ToLower();
-            if (string.IsNullOrEmpty(searchTerm))
-            {
-                BuildAllItems();
-                return;
-            }
-            if (items.Count <= 0) return;
-
-            List<KeyValuePair<int, Item>> results = new List<KeyValuePair<int, Item>>(
-                items.Where(item => item.Value.ProdName.ToLower().Contains(searchTerm)));
-            results.Sort(new Item());
-
-            SearchAllList.Items.Clear();
-
-            foreach (KeyValuePair<int, Item> item in results)
-            {
-                ListBoxItem listItem = new ListBoxItem
-                {
-                    Content = item.Value.ProdName,
-                    Tag = item.Value.ProdId
-                };
-
-                SearchAllList.Items.Add(listItem);
-            }
         }
 
         private void ChangeManufactureItem(int itemId)
@@ -445,14 +387,71 @@ namespace EvE_Build_WPF
             ManVolumeMaterial.Content = "0 m3";
         }
 
+        private void SearchListChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (!initDone) return;
+
+            ListBox allItems = (ListBox)sender;
+            if (allItems.SelectedItem == null) return;
+
+            ListBoxItem selectedItem = (ListBoxItem)allItems.SelectedItem;
+            if (selectedItem.Tag == null) return;
+
+            int itemId = (int)selectedItem.Tag;
+            if (!items.ContainsKey(itemId)) return;
+
+            ChangeManufactureItem(itemId);
+        }
+
+        private void SearchTextChanged(object sender, TextChangedEventArgs e)
+        {
+            ResetDefaultState();
+
+            string searchTerm = ((TextBox)sender).Text.ToLower();
+            if (string.IsNullOrEmpty(searchTerm))
+            {
+                BuildAllItems();
+                return;
+            }
+            if (items.Count <= 0) return;
+
+            List<KeyValuePair<int, Item>> results = new List<KeyValuePair<int, Item>>(
+                items.Where(item => item.Value.ProdName.ToLower().Contains(searchTerm)));
+            results.Sort(new Item());
+
+            SearchAllList.Items.Clear();
+
+            foreach (KeyValuePair<int, Item> item in results)
+            {
+                ListBoxItem listItem = new ListBoxItem
+                {
+                    Content = item.Value.ProdName,
+                    Tag = item.Value.ProdId
+                };
+
+                SearchAllList.Items.Add(listItem);
+            }
+        }
+
         private void ParameterChange(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
-            ListBoxItem box = (ListBoxItem)SearchAllList.SelectedItem;
-            if (box == null) return;
+            if (ManTypeId.Content.ToString() == "TypeID" || ManTypeId.Content.ToString() == "") return;
+            int itemId = int.Parse(ManTypeId.Content.ToString());
 
-            Item item = items[(int)box.Tag];
+            Item item = items[itemId];
 
             CalculatePrices(item);
+        }
+
+        private void GroupViewChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
+        {
+            TreeViewItem groupItem = (TreeViewItem)GroupView.SelectedItem;
+            if (groupItem == null || !groupItem.Tag.ToString().StartsWith("item,")) return;
+
+            int itemId = int.Parse(groupItem.Tag.ToString().Substring(5));
+            if (!items.ContainsKey(itemId)) return;
+
+            ChangeManufactureItem(itemId);
         }
     }
 }
