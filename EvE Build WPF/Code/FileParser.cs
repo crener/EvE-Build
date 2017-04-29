@@ -201,8 +201,8 @@ namespace EvE_Build_WPF.Code
                         if (current == null) continue;
                     }
 
+                    //blueprint data
                     YamlMappingNode currentEntry = (YamlMappingNode)node.Value;
-
                     foreach (KeyValuePair<YamlNode, YamlNode> item in currentEntry)
                     {
                         int temp;
@@ -239,6 +239,8 @@ namespace EvE_Build_WPF.Code
                     }
                 }
 
+
+                //product data
                 foreach (Item item in itemCollection.Values)
                 {
                     int id = item.ProdId;
@@ -253,7 +255,10 @@ namespace EvE_Build_WPF.Code
                             {
                                 case "name":
                                     if (allNodes.Value.AllNodes.Contains("en") && allNodes.Value["en"].ToString() != "")
+                                    {
                                         item.ProdName = allNodes.Value["en"].ToString();
+                                        if (CheckNameForSubFaction(item.ProdName)) item.isSubFaction = true;
+                                    }
                                     break;
                                 case "basePrice":
                                     decimal longTemp;
@@ -351,6 +356,23 @@ namespace EvE_Build_WPF.Code
             }
 
             return materials;
+        }
+
+        private static bool CheckNameForSubFaction(string name)
+        {
+            return name.Contains("True Sansha") || 
+                name.Contains("Shadow Serpentis") || 
+                name.Contains("Republic Fleet") ||
+                name.Contains("Imperial Navy") || 
+                name.Contains("Khanid Navy") || 
+                name.Contains("Federation Navy") || 
+                name.Contains("Dread Guristas") || 
+                name.Contains("Dark Blood") || 
+                name.Contains("Ammatar Navy") || 
+                name.Contains("Domination") || 
+                name.Contains("Civilian") || 
+                name.Contains("CONCORD") || 
+                name.Contains("Caldari Navy");
         }
     }
 }

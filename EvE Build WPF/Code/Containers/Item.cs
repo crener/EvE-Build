@@ -36,6 +36,8 @@ namespace EvE_Build_WPF.Code
 
         public Faction FactionId { get; set; }
         public bool isFaction { get; set; }
+        public bool isSubFaction { get; set; }
+        public bool isRig { get; set; }
         public string SofFaction { get; set; }
         public int GroudId { get; set; }
         public int MarketGroupId { get; set; }

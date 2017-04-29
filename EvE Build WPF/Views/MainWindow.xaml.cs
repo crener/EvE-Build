@@ -5,8 +5,6 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Collections.Generic;
-using System.Threading;
-using System.Windows.Threading;
 using EvE_Build_WPF.Code;
 using EvE_Build_WPF.Code.Containers;
 
@@ -43,14 +41,14 @@ namespace EvE_Build_WPF
             foreach (KeyValuePair<int, Item> item in returnTask.Result)
                 items.AddOrUpdate(item.Value.ProdId, item.Value, Item.Merdge);
 
-            BuildAllItems();
-            ManName.Content = "Select an item from the right";
-
             await Task.Run(() => BuildMaterial());
 
             new CentralThread(ref materials, ref items);
             CentralThread.stationDataUpdated += ThreadUpdateStationsInvoke;
+
             BuildTreeView();
+            BuildAllItems();
+            ManName.Content = "Select an item from the right";
 
             initDone = true;
         }
@@ -86,7 +84,8 @@ namespace EvE_Build_WPF
                 TreeViewItem viewItem = new TreeViewItem
                 {
                     Header = mat.Name,
-                    Tag = "market," + mat.MarketId
+                    Tag = "market," + mat.MarketId,
+                    ToolTip = mat.Description
                 };
 
                 mat.TreeViewObject = viewItem;
@@ -110,6 +109,8 @@ namespace EvE_Build_WPF
                     MarketItem group = marketItems.First(x => x.MarketId == item.Value.MarketGroupId);
                     if (group.Name.Contains("Faction"))
                         item.Value.isFaction = true;
+                    if (group.Name.Contains(" Rigs") || group.Name.Contains(" Modules"))
+                        item.Value.isRig = true;
 
                     TreeViewItem viewItem = new TreeViewItem
                     {
@@ -143,6 +144,17 @@ namespace EvE_Build_WPF
             for (int i = marketItems.Count - 1; i >= 0; i--)
             {
                 if (marketItems[i].Used) continue;
+
+                try
+                {
+                    MarketItem parent = marketItems.First(x => x.MarketId == marketItems[i].ParentGroupId);
+                    if (parent != null) parent.TreeViewObject.Items.Remove(marketItems[i].TreeViewObject);
+                }
+                catch (InvalidOperationException)
+                {
+                    //ignore... the market item didn't have a parent
+                }
+
                 marketItems.RemoveAt(i);
             }
 
@@ -180,12 +192,13 @@ namespace EvE_Build_WPF
 
         private void BuildAllItems()
         {
+            SearchAllList.Items.Clear();
             List<Item> sortedItems = new List<Item>(items.Values);
             sortedItems.Sort();
 
             foreach (Item item in sortedItems)
             {
-                if (item.ProdName.StartsWith("'") || item.ProdName.StartsWith("‘") || item.isFaction)
+                if (item.ProdName.StartsWith("'") || item.ProdName.StartsWith("‘") || item.ProdName.StartsWith("R.A.M.") || item.ProdName.StartsWith("R.Db") || item.isFaction || item.isRig || item.isSubFaction || item.ProdName.StartsWith("Capital"))
                     continue;
 
                 ListBoxItem listItem = new ListBoxItem
