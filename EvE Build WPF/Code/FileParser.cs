@@ -8,8 +8,10 @@ using YamlDotNet.RepresentationModel;
 
 namespace EvE_Build_WPF.Code
 {
-    class FileParser
+    static class FileParser
     {
+        private static YamlMappingNode types;
+
         public static bool CheckSaveDirectoryExists()
         {
             string directory = Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "static";
@@ -179,9 +181,9 @@ namespace EvE_Build_WPF.Code
                 YamlStream file = new YamlStream();
                 file.Load(data);
 
-                YamlMappingNode rootNode = (YamlMappingNode)file.Documents[0].RootNode;
+                types = (YamlMappingNode)file.Documents[0].RootNode;
 
-                foreach (KeyValuePair<YamlNode, YamlNode> node in rootNode)
+                foreach (KeyValuePair<YamlNode, YamlNode> node in types)
                 {
                     int blue;
                     Item current;
@@ -246,7 +248,7 @@ namespace EvE_Build_WPF.Code
                     int id = item.ProdId;
                     YamlNode node;
 
-                    if (rootNode.Children.TryGetValue(new YamlScalarNode(id.ToString()), out node))
+                    if (types.Children.TryGetValue(new YamlScalarNode(id.ToString()), out node))
                     {
                         YamlMappingNode mapping = (YamlMappingNode)node;
                         foreach (KeyValuePair<YamlNode, YamlNode> allNodes in mapping.Children)
@@ -344,6 +346,8 @@ namespace EvE_Build_WPF.Code
 
         public static ConcurrentDictionary<int, MaterialItem> GatherMaterials(ConcurrentDictionary<int, Item> items)
         {
+            YamlNode nameKey = new YamlScalarNode("name");
+            YamlNode langKey = new YamlScalarNode("en");
             ConcurrentDictionary<int, MaterialItem> materials = new ConcurrentDictionary<int, MaterialItem>();
 
             foreach (KeyValuePair<int, Item> item in items)
@@ -351,7 +355,22 @@ namespace EvE_Build_WPF.Code
                 foreach (Material material in item.Value.ProductMaterial)
                 {
                     if (!materials.ContainsKey(material.Type) && !items.ContainsKey(material.Type))
-                        materials.AddOrUpdate(material.Type, new MaterialItem(material.Type), MaterialItem.merdge);
+                    {
+                        MaterialItem materialItem = new MaterialItem(material.Type);
+
+                        try
+                        {
+                            YamlNode materialKey = new YamlScalarNode(material.Type.ToString());
+
+                            materialItem.Name = types.Children[materialKey][nameKey][langKey].ToString();
+                        }
+                        catch (KeyNotFoundException)
+                        {
+                            materialItem.Name = "Unknown " + material.Type;
+                        }
+
+                        materials.AddOrUpdate(material.Type, materialItem, MaterialItem.merdge);
+                    }
                 }
             }
 
@@ -360,19 +379,25 @@ namespace EvE_Build_WPF.Code
 
         private static bool CheckNameForSubFaction(string name)
         {
-            return name.Contains("True Sansha") || 
-                name.Contains("Shadow Serpentis") || 
+            return name.Contains("True Sansha") ||
+                name.Contains("Shadow Serpentis") ||
                 name.Contains("Republic Fleet") ||
-                name.Contains("Imperial Navy") || 
-                name.Contains("Khanid Navy") || 
-                name.Contains("Federation Navy") || 
-                name.Contains("Dread Guristas") || 
-                name.Contains("Dark Blood") || 
-                name.Contains("Ammatar Navy") || 
-                name.Contains("Domination") || 
-                name.Contains("Civilian") || 
-                name.Contains("CONCORD") || 
+                name.Contains("Imperial Navy") ||
+                name.Contains("Khanid Navy") ||
+                name.Contains("Federation Navy") ||
+                name.Contains("Dread Guristas") ||
+                name.Contains("Dark Blood") ||
+                name.Contains("Ammatar Navy") ||
+                name.Contains("Domination") ||
+                name.Contains("Civilian") ||
+                name.Contains("CONCORD") ||
                 name.Contains("Caldari Navy");
+        }
+
+        public static void ClearData()
+        {
+            types = null;
+            GC.Collect();
         }
     }
 }

@@ -50,6 +50,7 @@ namespace EvE_Build_WPF
             BuildAllItems();
             ManName.Content = "Select an item from the right";
 
+            FileParser.ClearData();
             initDone = true;
         }
 
@@ -164,11 +165,8 @@ namespace EvE_Build_WPF
             //ensure directory exists
             FileParser.CheckSaveDirectoryExists();
 
-            //memory usage gets really big as the yaml data is parsed... GC the crap out of it
             Dictionary<int, Item> blue = FileParser.ParseBlueprintData();
-            GC.Collect();
             FileParser.ParseItemDetails(ref blue);
-            GC.Collect();
 
             return blue;
         }
@@ -176,7 +174,6 @@ namespace EvE_Build_WPF
         private void BuildMarketData()
         {
             marketItems = FileParser.ParseMarketGroupData();
-            GC.Collect();
         }
 
         private void BuildMaterial()
@@ -226,30 +223,32 @@ namespace EvE_Build_WPF
 
         private void CalculatePrices(Item item)
         {
-            int cheapStation = CalculateTotals(item);
-            CalculateMaterials(item, cheapStation);
+            int bestStation = CalculateTotals(item);
+            CalculateMaterials(item, bestStation);
 
             //work out the bpo payback amount
-            if (item.BuyPrice.ContainsKey(cheapStation))
+            if (item.BuyPrice.ContainsKey(bestStation))
             {
-                decimal buildCost = CalculateItemPrice(cheapStation, item);
-                decimal stationBuy = item.BuyPrice.Count > 0 && item.BuyPrice.ContainsKey(cheapStation)
-                    ? item.BuyPrice[cheapStation]
-                    : 0m;
-                decimal stationSell = item.SellPrice.Count > 0 && item.SellPrice.ContainsKey(cheapStation)
-                    ? item.SellPrice[cheapStation]
-                    : 0m;
+                decimal buildCost = CalculateItemPrice(bestStation, item);
+
+                decimal stationBuy = 0m;
+                if(item.BuyPrice.Count > 0 && item.BuyPrice.ContainsKey(bestStation))
+                    stationBuy = item.BuyPrice[bestStation];
+
+                decimal stationSell = 0m;
+                if(item.SellPrice.Count > 0 && item.SellPrice.ContainsKey(bestStation))
+                    stationSell = item.SellPrice[bestStation];
 
                 decimal sellProfit = stationSell * item.ProdQty - buildCost;
                 decimal buyProfit = stationBuy * item.ProdQty - buildCost;
-                decimal bestPrice = sellProfit < buyProfit ? sellProfit : buyProfit;
+                decimal bestPrice = sellProfit > buyProfit ? sellProfit : buyProfit;
 
                 if (bestPrice <= 0)
                     ManBpoRuns.Content = "Not Profitable";
                 else
                 {
                     int runs = (int)Math.Ceiling(item.BlueprintBasePrice / bestPrice);
-                    ManBpoRuns.Content = runs + (runs == 1 ? " run in " : " runs in ") + Settings.SpecificStation(cheapStation).StationName;
+                    ManBpoRuns.Content = runs + (runs == 1 ? " run in " : " runs in ") + Settings.SpecificStation(bestStation).StationName;
                 }
             }
             else ManBpoRuns.Content = "Not enough data";
@@ -305,7 +304,7 @@ namespace EvE_Build_WPF
         {
             ManProfit.Items.Clear();
             int cheapestId = 0;
-            decimal bestMargin = decimal.MaxValue;
+            decimal bestMargin = decimal.MinValue;
             float te = 1f - (float)ManTe.Value / 100f;
             float buildTime = item.ProdTime / 60f / 60f * te;
 
@@ -328,7 +327,7 @@ namespace EvE_Build_WPF
                 grid.BuyMargin = buyProfit.ToString("N");
                 grid.IskHr = hour.ToString("N");
 
-                if (bestPrice < bestMargin)
+                if (bestPrice > bestMargin)
                 {
                     cheapestId = station.StationId;
                     bestMargin = bestPrice;

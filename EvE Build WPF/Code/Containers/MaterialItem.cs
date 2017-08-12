@@ -6,7 +6,7 @@ namespace EvE_Build_WPF.Code.Containers
     class MaterialItem : IEveCentralItem
     {
         public string Name { get; set; }
-        public int Id { get; set; }
+        public int Id { get; private set; }
 
         private Dictionary<int, decimal> prices = new Dictionary<int, decimal>();
 
@@ -55,7 +55,7 @@ namespace EvE_Build_WPF.Code.Containers
 
         public void setBuyCost(int currentStation, decimal cost)
         {
-            //ignore as this isn't needed
+            //ignore as this isn't needed (yet)
         }
 
         public void setSellCost(int currentStation, decimal cost)

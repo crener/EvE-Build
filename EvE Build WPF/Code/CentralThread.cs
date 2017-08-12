@@ -73,7 +73,7 @@ namespace EvE_Build_WPF.Code
             {
                 StringBuilder details = new StringBuilder(eveCentral.Length + stationId.ToString().Length + singleFetchAmount * (typeSeparator.Length + averageIdLength));
                 details.Append(eveCentral).Append(stationId);
-                
+
                 while (count < singleFetchAmount * cycle && count < items.Count && enumerator.MoveNext())
                 {
                     if (!Settings.isItemBlocked(enumerator.Current.Value.ProdId))
@@ -97,7 +97,7 @@ namespace EvE_Build_WPF.Code
             {
                 StringBuilder details = new StringBuilder(eveCentral.Length + stationId.ToString().Length + singleFetchAmount * (typeSeparator.Length + averageIdLength));
                 details.Append(eveCentral).Append(stationId);
-                
+
                 while (count < singleFetchAmount * cycle && count < materials.Count && enumerator.MoveNext())
                 {
                     details.Append(typeSeparator + enumerator.Current.Value.Id);
@@ -195,11 +195,8 @@ namespace EvE_Build_WPF.Code
 
                 return responseString;
             }
-            catch (WebException web)
-            {
-
-            }
-            catch (NullReferenceException nre) { }
+            catch (WebException) { }
+            catch (NullReferenceException) { }
 
             return "";
         }
