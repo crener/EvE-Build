@@ -11,6 +11,10 @@ namespace EvE_Build_WPF.Code
     static class FileParser
     {
         private static YamlMappingNode types;
+        public static readonly string blueprintsFile = Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "static" +
+            Path.DirectorySeparatorChar + "blueprints.yaml";
+        public static readonly string typeIdFile = Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "static" + Path.DirectorySeparatorChar + "typeIDs.yaml";
+        public static readonly string marketGroupFile = Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "static" + Path.DirectorySeparatorChar + "invMarketGroups.csv";
 
         public static bool CheckSaveDirectoryExists()
         {
@@ -25,13 +29,11 @@ namespace EvE_Build_WPF.Code
 
         public static Dictionary<int, Item> ParseBlueprintData()
         {
-            string path = Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "static" +
-                          Path.DirectorySeparatorChar + "blueprints.yaml";
-            if (!File.Exists(path)) throw new FileNotFoundException();
+            if (!File.Exists(blueprintsFile)) throw new FileNotFoundException();
 
             Dictionary<int, Item> items = new Dictionary<int, Item>();
 
-            using (StreamReader data = new StreamReader(path))
+            using (StreamReader data = new StreamReader(blueprintsFile))
             {
                 YamlStream file = new YamlStream();
                 file.Load(data);
@@ -173,10 +175,9 @@ namespace EvE_Build_WPF.Code
 
         public static void ParseItemDetails(ref Dictionary<int, Item> itemCollection)
         {
-            string path = Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "static" + Path.DirectorySeparatorChar + "typeIDs.yaml";
-            if (!File.Exists(path)) throw new FileNotFoundException();
+            if (!File.Exists(typeIdFile)) throw new FileNotFoundException();
 
-            using (StreamReader data = new StreamReader(path))
+            using (StreamReader data = new StreamReader(typeIdFile))
             {
                 YamlStream file = new YamlStream();
                 file.Load(data);
@@ -305,14 +306,12 @@ namespace EvE_Build_WPF.Code
 
         public static List<MarketItem> ParseMarketGroupData()
         {
-            string path = Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "static" +
-                          Path.DirectorySeparatorChar + "invMarketGroups.csv";
-            if (!File.Exists(path)) throw new FileNotFoundException();
+            if (!File.Exists(marketGroupFile)) throw new FileNotFoundException();
 
             List<MarketItem> collection = new List<MarketItem>();
             try
             {
-                using (StreamReader data = new StreamReader(path))
+                using (StreamReader data = new StreamReader(marketGroupFile))
                 {
                     string line = data.ReadLine();
 

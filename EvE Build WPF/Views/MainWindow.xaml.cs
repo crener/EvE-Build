@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Collections.Generic;
+using System.IO;
 using EvE_Build_WPF.Code;
 using EvE_Build_WPF.Code.Containers;
 
@@ -27,7 +28,25 @@ namespace EvE_Build_WPF
 
         private async void SetupData(object sender, RoutedEventArgs routedEventArgs)
         {
-            Task<Dictionary<int, Item>> returnTask = Task<Dictionary<int, Item>>.Factory.StartNew(() => ItemDataAcquisition());
+            if (!File.Exists(FileParser.marketGroupFile))
+            {
+                //download the file and place it in the correct location
+                try
+                {
+                    ManName.Content = "Downloading data (first time initialisation)";
+                    MessageBox.Show("EvE Build will perform a one time download of EvE online data to get the most up to date information. This is usally around 100MB in size.", "Downloading Content");
+
+                    await Task.Run(() => UpdateChecker.DownloadEveFiles());
+                    ManName.Content = "Loading items from file";
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Error Updating", ex.Message);
+                    return;
+                }
+            }
+
+            Task<Dictionary<int, Item>> returnTask = Task<Dictionary<int, Item>>.Factory.StartNew(ItemDataAcquisition);
 
             Task[] jobs = new Task[3];
             jobs[0] = returnTask;
@@ -48,9 +67,10 @@ namespace EvE_Build_WPF
 
             BuildTreeView();
             BuildAllItems();
-            ManName.Content = "Select an item from the right";
+            ManName.Content = "Select an item from the left";
 
             FileParser.ClearData();
+            Task.Factory.StartNew(UpdateChecker.CheckForUpdates);
             initDone = true;
         }
 
@@ -165,10 +185,18 @@ namespace EvE_Build_WPF
             //ensure directory exists
             FileParser.CheckSaveDirectoryExists();
 
-            Dictionary<int, Item> blue = FileParser.ParseBlueprintData();
-            FileParser.ParseItemDetails(ref blue);
+            try
+            {
+                Dictionary<int, Item> blue = blue = FileParser.ParseBlueprintData();
+                FileParser.ParseItemDetails(ref blue);
+                return blue;
+            }
+            catch (FileNotFoundException)
+            {
+                MessageBox.Show("EvE Online data is Missing");
+            }
 
-            return blue;
+            return null;
         }
 
         private void BuildMarketData()
@@ -232,11 +260,11 @@ namespace EvE_Build_WPF
                 decimal buildCost = CalculateItemPrice(bestStation, item);
 
                 decimal stationBuy = 0m;
-                if(item.BuyPrice.Count > 0 && item.BuyPrice.ContainsKey(bestStation))
+                if (item.BuyPrice.Count > 0 && item.BuyPrice.ContainsKey(bestStation))
                     stationBuy = item.BuyPrice[bestStation];
 
                 decimal stationSell = 0m;
-                if(item.SellPrice.Count > 0 && item.SellPrice.ContainsKey(bestStation))
+                if (item.SellPrice.Count > 0 && item.SellPrice.ContainsKey(bestStation))
                     stationSell = item.SellPrice[bestStation];
 
                 decimal sellProfit = stationSell * item.ProdQty - buildCost;
