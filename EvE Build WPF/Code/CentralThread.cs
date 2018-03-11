@@ -13,7 +13,8 @@ namespace EvE_Build_WPF.Code
 {
     class CentralThread
     {
-        private static readonly string eveCentral = "http://api.eve-central.com/api/marketstat?&usesystem=";
+        //private static readonly string eveCentral = "http://api.eve-central.com/api/marketstat?&usesystem=";
+        private static readonly string eveCentral = "http://api.evemarketer.com/ec/marketstat?&usesystem=";
         private static readonly string typeSeparator = "&typeid=";
         private static readonly int singleFetchAmount = 100;
         private static readonly int averageIdLength = 6;
@@ -120,58 +121,68 @@ namespace EvE_Build_WPF.Code
         {
             if (string.IsNullOrEmpty(xmlData)) return;
             XmlReader reader = XmlReader.Create(new StringReader(xmlData));
+            if(reader.ReadState == ReadState.Error) return;
 
-            while (reader.Read())
+            try
             {
-                string idLiteral;
-                if (reader.HasAttributes && reader.Name == "type" && (idLiteral = reader.GetAttribute("id")) != null)
+                while(reader.Read())
                 {
-                    int id;
-                    IEveCentralItem item;
-                    if (int.TryParse(idLiteral, out id))
+                    string idLiteral;
+                    if(reader.HasAttributes && reader.Name == "type" && (idLiteral = reader.GetAttribute("id")) != null)
                     {
-                        if (items.ContainsKey(id))
-                            item = items[id];
-                        else if (materials.ContainsKey(id))
-                            item = materials[id];
-                        else continue;
-                    }
-                    else continue;
-
-                    while (reader.Read() && (reader.Name != "type" || reader.NodeType != XmlNodeType.EndElement))
-                    {
-                        if (reader.Name == "buy" && reader.NodeType == XmlNodeType.Element)
+                        int id;
+                        IEveCentralItem item;
+                        if(int.TryParse(idLiteral, out id))
                         {
-                            int depth = reader.Depth;
-                            while (reader.Read() && (reader.Depth != depth || reader.NodeType == XmlNodeType.EndElement))
+                            if(items.ContainsKey(id))
+                                item = items[id];
+                            else if(materials.ContainsKey(id))
+                                item = materials[id];
+                            else continue;
+                        }
+                        else continue;
+
+                        while(reader.Read() && (reader.Name != "type" || reader.NodeType != XmlNodeType.EndElement))
+                        {
+                            if(reader.Name == "buy" && reader.NodeType == XmlNodeType.Element)
                             {
-                                if (reader.Name == "max")
+                                int depth = reader.Depth;
+                                while(reader.Read() &&
+                                      (reader.Depth != depth || reader.NodeType == XmlNodeType.EndElement))
                                 {
-                                    reader.Read();
-                                    decimal cost;
-                                    if (decimal.TryParse(reader.Value, out cost))
-                                        item.setBuyCost(currentStation, cost);
-                                    break;
+                                    if(reader.Name == "max")
+                                    {
+                                        reader.Read();
+                                        decimal cost;
+                                        if(decimal.TryParse(reader.Value, out cost))
+                                            item.setBuyCost(currentStation, cost);
+                                        break;
+                                    }
                                 }
                             }
-                        }
-                        else if (reader.Name == "sell" && reader.NodeType == XmlNodeType.Element)
-                        {
-                            int depth = reader.Depth;
-                            while (reader.Read() && (reader.Depth != depth || reader.NodeType == XmlNodeType.EndElement))
+                            else if(reader.Name == "sell" && reader.NodeType == XmlNodeType.Element)
                             {
-                                if (reader.Name == "min")
+                                int depth = reader.Depth;
+                                while(reader.Read() &&
+                                      (reader.Depth != depth || reader.NodeType == XmlNodeType.EndElement))
                                 {
-                                    reader.Read();
-                                    decimal cost;
-                                    if (decimal.TryParse(reader.Value, out cost))
-                                        item.setSellCost(currentStation, cost);
-                                    break;
+                                    if(reader.Name == "min")
+                                    {
+                                        reader.Read();
+                                        decimal cost;
+                                        if(decimal.TryParse(reader.Value, out cost))
+                                            item.setSellCost(currentStation, cost);
+                                        break;
+                                    }
                                 }
                             }
                         }
                     }
                 }
+            }
+            catch(Exception)
+            {
+                //ignore
             }
         }
 

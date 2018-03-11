@@ -33,8 +33,8 @@ namespace EvE_Build_WPF
                 //download the file and place it in the correct location
                 try
                 {
-                    ManName.Content = "Downloading data (first time initialisation)";
-                    MessageBox.Show("EvE Build will perform a one time download of EvE online data to get the most up to date information. This is usally around 100MB in size.", "Downloading Content");
+                    ManName.Content = "Downloading data (first time initialization)";
+                    MessageBox.Show("EvE Build will perform a one time download of EvE online data to get the most up to date information. This is usually around 100MB in size.", "Downloading Content");
 
                     await Task.Run(() => UpdateChecker.DownloadEveFiles());
                     ManName.Content = "Loading items from file";

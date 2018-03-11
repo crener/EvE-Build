@@ -18,22 +18,22 @@ namespace EvE_Build_WPF.Code
 {
     public static class UpdateChecker
     {
-        private const float version = 0.6f;
-        private static readonly string UpdateUrl = "http://build.martinkruger.me?v=" + version.ToString("N3");
+        private const float Version = 0.6f;
+        private static readonly string UpdateUrl = "https://github.com/crener/EvE-Build/versionInfo.json";
         private const string DownloadUrl = "https://github.com/crener/EvE-Build/releases";
 
 
         public static void CheckForUpdates()
         {
-            string updateJson = downloadJson();
-            updateData info = JsonConvert.DeserializeObject<updateData>(updateJson);
+            string updateJson = DownloadJson();
+            UpdateData info = JsonConvert.DeserializeObject<UpdateData>(updateJson);
 
             //check if program needs to be updated
-            if (info.ToolUpdateVersion > version)
+            if (info.ToolUpdateVersion > Version)
             {
                 MessageBoxResult answer = MessageBox.Show(
-                    "There is a new version of EvE Build avaliable. Would you like to go to the download page?",
-                    "Update avaliable", MessageBoxButton.YesNo);
+                    "There is a new version of EvE Build available. Would you like to go to the download page?",
+                    "Update available", MessageBoxButton.YesNo);
 
                 if (answer == MessageBoxResult.Yes)
                 {
@@ -46,8 +46,8 @@ namespace EvE_Build_WPF.Code
             if (info.ApiUpdateTime > File.GetCreationTime(FileParser.blueprintsFile))
             {
                 MessageBoxResult answer = MessageBox.Show(
-                    "There are new Eve Online files avaliable. Would you like to download them?",
-                    "Update avaliable", MessageBoxButton.YesNo);
+                    "There are new Eve Online files available. Would you like to download them?",
+                    "Update available", MessageBoxButton.YesNo);
 
                 if (answer == MessageBoxResult.Yes)
                     DownloadEveFiles(info);
@@ -56,17 +56,15 @@ namespace EvE_Build_WPF.Code
 
         public static void DownloadEveFiles()
         {
-            string json = downloadJson();
-            if (downloadJson() == null)
+            string json = DownloadJson();
+            if (DownloadJson() == null)
                 throw new Exception("Could not download EvE Json data");
 
-            DownloadEveFiles(JsonConvert.DeserializeObject<updateData>(json));
+            DownloadEveFiles(JsonConvert.DeserializeObject<UpdateData>(json));
         }
 
-        private static void DownloadEveFiles(updateData data)
+        private static void DownloadEveFiles(UpdateData data)
         {
-            WebRequest request = WebRequest.Create(data.ApiUpdateLink);
-
             if (!Directory.Exists("static")) Directory.CreateDirectory("static");
 
             using (WebClient client = new WebClient())
@@ -124,7 +122,7 @@ namespace EvE_Build_WPF.Code
             }
         }
 
-        private static string downloadJson()
+        private static string DownloadJson()
         {
             try
             {
@@ -138,11 +136,12 @@ namespace EvE_Build_WPF.Code
                 return result;
             }
             catch (WebSocketException) { }
+            catch (WebException) { }
 
             return null;
         }
 
-        private class updateData
+        private class UpdateData
         {
             public DateTime ToolUpdateTime { get; set; }
             public float ToolUpdateVersion { get; set; }
