@@ -19,7 +19,7 @@ namespace EvE_Build_WPF.Code
     public static class UpdateChecker
     {
         private const float Version = 0.6f;
-        private static readonly string UpdateUrl = "https://github.com/crener/EvE-Build/versionInfo.json";
+        private static readonly string UpdateUrl = "https://raw.githubusercontent.com/crener/EvE-Build/Rewrite/versionInfo.json";
         private const string DownloadUrl = "https://github.com/crener/EvE-Build/releases";
 
 
