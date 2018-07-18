@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace EvE_Build_WPF.Code.Containers
 {
@@ -53,12 +52,12 @@ namespace EvE_Build_WPF.Code.Containers
             return newObject;
         }
 
-        public void setBuyCost(int currentStation, decimal cost)
+        public void UpdateBuyCost(int currentStation, decimal cost)
         {
             //ignore as this isn't needed (yet)
         }
 
-        public void setSellCost(int currentStation, decimal cost)
+        public void UpdateSellPrice(int currentStation, decimal cost)
         {
             if (prices.ContainsKey(currentStation))
             {

@@ -14,13 +14,13 @@ namespace EvE_Build_WPF.Code
         public int TypeId { get; set; }
         public bool Released { get; set; }
 
-        public string ProdName { get; set; }
-        public int ProdLimit { get; set; }
-        public int ProdQty { get; set; }
-        public int ProdId { get; set; }
-        public int ProdTime { get; set; }
-        public decimal ProdBasePrice { get; set; }
-        public decimal ProdVolume { get; set; }
+        public string ProductName { get; set; }
+        public int ProductionLimit { get; set; }
+        public int ProductionQuantity { get; set; }
+        public int ProductId { get; set; }
+        public int ProductionTime { get; set; }
+        public decimal ProductBasePrice { get; set; }
+        public decimal ProductVolume { get; set; }
 
         public int MatResearchTime { get; set; }
         public int TimeResearchTime { get; set; }
@@ -31,8 +31,8 @@ namespace EvE_Build_WPF.Code
         private Dictionary<int, int> prodSkills = new Dictionary<int, int>();
         private Dictionary<int, int> copySkills = new Dictionary<int, int>();
 
-        private Dictionary<int, decimal> buyCost = new Dictionary<int, decimal>();
-        private Dictionary<int, decimal> sellCost = new Dictionary<int, decimal>();
+        public Dictionary<int, decimal> BuyPrice { get; } = new Dictionary<int, decimal>();
+        public Dictionary<int, decimal> SellCost { get; } = new Dictionary<int, decimal>();
 
         public Faction FactionId { get; set; }
         public bool isFaction { get; set; }
@@ -45,7 +45,7 @@ namespace EvE_Build_WPF.Code
 
         public Item()
         {
-            ProdName = "";
+            ProductName = "";
             Released = true;
         }
 
@@ -54,7 +54,7 @@ namespace EvE_Build_WPF.Code
             BlueprintId = blueprintId;
             TypeId = typeId;
 
-            ProdName = "";
+            ProductName = "";
             Race = Race.Unknown;
             Released = true;
         }
@@ -69,7 +69,7 @@ namespace EvE_Build_WPF.Code
         {
             bool result = CheckValididty();
             result = result && MarketGroupId != 0;
-            result = result && ProdName.Length >= 1;
+            result = result && ProductName.Length >= 1;
             result = result && BlueprintName != null;
 
             return result;
@@ -107,9 +107,7 @@ namespace EvE_Build_WPF.Code
             {
                 List<Material> mats = new List<Material>(prodMats.Count + 1);
                 foreach (KeyValuePair<int, long> pair in prodMats)
-                {
                     mats.Add(new Material(pair.Key, pair.Value));
-                }
 
                 return mats.ToArray();
             }
@@ -121,9 +119,7 @@ namespace EvE_Build_WPF.Code
             {
                 List<Skill> skills = new List<Skill>(prodSkills.Count + 1);
                 foreach (KeyValuePair<int, int> pair in prodSkills)
-                {
                     skills.Add(new Skill(pair.Key, pair.Value));
-                }
 
                 return skills.ToArray();
             }
@@ -135,9 +131,7 @@ namespace EvE_Build_WPF.Code
             {
                 List<Material> mats = new List<Material>(copyMats.Count + 1);
                 foreach (KeyValuePair<int, long> pair in copyMats)
-                {
                     mats.Add(new Material(pair.Key, pair.Value));
-                }
 
                 return mats.ToArray();
             }
@@ -149,51 +143,27 @@ namespace EvE_Build_WPF.Code
             {
                 List<Skill> skills = new List<Skill>(copySkills.Count + 1);
                 foreach (KeyValuePair<int, int> pair in copySkills)
-                {
                     skills.Add(new Skill(pair.Key, pair.Value));
-                }
 
                 return skills.ToArray();
             }
         }
 
-        public Dictionary<int, decimal> BuyPrice
+        public void UpdateBuyCost(int station, decimal isk)
         {
-            get
-            {
-                return buyCost;
-            }
+            if (BuyPrice.ContainsKey(station)) BuyPrice[station] = isk;
+            else BuyPrice.Add(station, isk);
         }
 
-        public Dictionary<int, decimal> SellPrice
+        public void UpdateSellPrice(int station, decimal isk)
         {
-            get
-            {
-                return sellCost;
-            }
-        }
-
-        public void setBuyCost(int station, decimal isk)
-        {
-            if (buyCost.ContainsKey(station))
-            {
-                buyCost[station] = isk;
-            }
-            else { buyCost.Add(station, isk); }
-        }
-
-        public void setSellCost(int station, decimal isk)
-        {
-            if (sellCost.ContainsKey(station))
-            {
-                sellCost[station] = isk;
-            }
-            else { sellCost.Add(station, isk); }
+            if (SellCost.ContainsKey(station)) SellCost[station] = isk;
+            else SellCost.Add(station, isk);
         }
 
         public int CompareTo(Item other)
         {
-            return string.Compare(ProdName, other.ProdName, StringComparison.Ordinal);
+            return string.Compare(ProductName, other.ProductName, StringComparison.Ordinal);
         }
 
         public int CompareTo(KeyValuePair<int, Item> other)

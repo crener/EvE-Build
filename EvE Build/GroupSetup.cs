@@ -87,7 +87,7 @@ namespace EvE_Build
                         MenuItem current = new MenuItem(market, fields[2], fields[3], icon, parent, type);
                         menuItems.Add(current);
                     }
-                    catch (Exception e) { };
+                    catch (Exception) { };
                 }
             }
             return menuItems;

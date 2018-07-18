@@ -6,6 +6,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Collections.Generic;
 using System.IO;
+using System.Windows.Documents;
 using EvE_Build_WPF.Code;
 using EvE_Build_WPF.Code.Containers;
 
@@ -28,7 +29,7 @@ namespace EvE_Build_WPF
 
         private async void SetupData(object sender, RoutedEventArgs routedEventArgs)
         {
-            if (!File.Exists(FileParser.marketGroupFile))
+            if (!File.Exists(FileParser.MarketGroupFile))
             {
                 //download the file and place it in the correct location
                 try
@@ -46,21 +47,27 @@ namespace EvE_Build_WPF
                 }
             }
 
-            Task<Dictionary<int, Item>> returnTask = Task<Dictionary<int, Item>>.Factory.StartNew(ItemDataAcquisition);
+            FileParser fileParser = new FileParser();
+            Task<Dictionary<int, Item>> blueprintData = Task<Dictionary<int, Item>>.Factory.StartNew(() => LoadItemBlueprintData(ref fileParser));
+            Task<List<MarketItem>> marketData = Task<List<MarketItem>>.Factory.StartNew(FileParser.ParseMarketGroupData);
 
             Task[] jobs = new Task[3];
-            jobs[0] = returnTask;
-            jobs[1] = Task.Run(() => BuildMarketData());
+            jobs[0] = blueprintData;
+            jobs[1] = marketData;
             jobs[2] = Task.Run(() => LoadSettings());
 
+            await marketData;
+            marketItems = marketData.Result;
+
             await Task.WhenAll(jobs);
+            
 
             //move the results to a new dictionary (for thread safety)
             items = new ConcurrentDictionary<int, Item>();
-            foreach (KeyValuePair<int, Item> item in returnTask.Result)
-                items.AddOrUpdate(item.Value.ProdId, item.Value, Item.Merdge);
+            foreach (KeyValuePair<int, Item> item in blueprintData.Result)
+                items.AddOrUpdate(item.Value.ProductId, item.Value, Item.Merdge);
 
-            await Task.Run(() => BuildMaterial());
+            await Task.Run(() => materials = fileParser.GatherMaterials(items));
 
             new CentralThread(ref materials, ref items);
             CentralThread.stationDataUpdated += ThreadUpdateStationsInvoke;
@@ -69,7 +76,6 @@ namespace EvE_Build_WPF
             BuildAllItems();
             ManName.Content = "Select an item from the left";
 
-            FileParser.ClearData();
             Task.Factory.StartNew(UpdateChecker.CheckForUpdates);
             initDone = true;
         }
@@ -122,15 +128,13 @@ namespace EvE_Build_WPF
                 try
                 {
                     MarketItem group = marketItems.First(x => x.MarketId == item.Value.MarketGroupId);
-                    if (group.Name.Contains("Faction"))
-                        item.Value.isFaction = true;
-                    if (group.Name.Contains(" Rigs") || group.Name.Contains(" Modules"))
-                        item.Value.isRig = true;
+                    if (group.Name.Contains("Faction")) item.Value.isFaction = true;
+                    if (group.Name.Contains(" Rigs") || group.Name.Contains(" Modules")) item.Value.isRig = true;
 
                     TreeViewItem viewItem = new TreeViewItem
                     {
-                        Tag = "item," + item.Value.ProdId,
-                        Header = item.Value.ProdName
+                        Tag = "item," + item.Value.ProductId,
+                        Header = item.Value.ProductName
                     };
 
                     group.TreeViewObject.Items.Add(viewItem);
@@ -180,15 +184,16 @@ namespace EvE_Build_WPF
             }
         }
 
-        private Dictionary<int, Item> ItemDataAcquisition()
+        private Dictionary<int, Item> LoadItemBlueprintData(ref FileParser fileParser)
         {
             //ensure directory exists
-            FileParser.CheckSaveDirectoryExists();
+            string directory = Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "static";
+            if (!Directory.Exists(directory)) Directory.CreateDirectory(directory);
 
             try
             {
-                Dictionary<int, Item> blue = blue = FileParser.ParseBlueprintData();
-                FileParser.ParseItemDetails(ref blue);
+                Dictionary<int, Item> blue = fileParser.ParseBlueprintData();
+                fileParser.ParseItemDetails(ref blue);
                 return blue;
             }
             catch (FileNotFoundException)
@@ -199,16 +204,6 @@ namespace EvE_Build_WPF
             return null;
         }
 
-        private void BuildMarketData()
-        {
-            marketItems = FileParser.ParseMarketGroupData();
-        }
-
-        private void BuildMaterial()
-        {
-            materials = FileParser.GatherMaterials(items);
-        }
-
         private void BuildAllItems()
         {
             SearchAllList.Items.Clear();
@@ -217,13 +212,13 @@ namespace EvE_Build_WPF
 
             foreach (Item item in sortedItems)
             {
-                if (item.ProdName.StartsWith("'") || item.ProdName.StartsWith("‘") || item.ProdName.StartsWith("R.A.M.") || item.ProdName.StartsWith("R.Db") || item.isFaction || item.isRig || item.isSubFaction || item.ProdName.StartsWith("Capital"))
+                if (item.ProductName.StartsWith("'") || item.ProductName.StartsWith("‘") || item.ProductName.StartsWith("R.A.M.") || item.ProductName.StartsWith("R.Db") || item.isFaction || item.isRig || item.isSubFaction || item.ProductName.StartsWith("Capital"))
                     continue;
 
                 ListBoxItem listItem = new ListBoxItem
                 {
-                    Content = item.ProdName,
-                    Tag = item.ProdId
+                    Content = item.ProductName,
+                    Tag = item.ProductId
                 };
 
                 SearchAllList.Items.Add(listItem);
@@ -239,12 +234,12 @@ namespace EvE_Build_WPF
         {
             Item item = items[itemId];
 
-            ManName.Content = item.ProdName;
-            ManTypeId.Content = item.ProdId;
+            ManName.Content = item.ProductName;
+            ManTypeId.Content = item.ProductId;
             ManBlueType.Content = item.BlueprintId;
 
             ManBpoCost.Content = item.BlueprintBasePrice.ToString("N") + " isk";
-            ManVolumeItem.Content = item.ProdVolume.ToString("N1") + " m3";
+            ManVolumeItem.Content = item.ProductVolume.ToString("N1") + " m3";
 
             CalculatePrices(item);
         }
@@ -264,15 +259,14 @@ namespace EvE_Build_WPF
                     stationBuy = item.BuyPrice[bestStation];
 
                 decimal stationSell = 0m;
-                if (item.SellPrice.Count > 0 && item.SellPrice.ContainsKey(bestStation))
-                    stationSell = item.SellPrice[bestStation];
+                if (item.SellCost.Count > 0 && item.SellCost.ContainsKey(bestStation))
+                    stationSell = item.SellCost[bestStation];
 
-                decimal sellProfit = stationSell * item.ProdQty - buildCost;
-                decimal buyProfit = stationBuy * item.ProdQty - buildCost;
+                decimal sellProfit = stationSell * item.ProductionQuantity - buildCost;
+                decimal buyProfit = stationBuy * item.ProductionQuantity - buildCost;
                 decimal bestPrice = sellProfit > buyProfit ? sellProfit : buyProfit;
 
-                if (bestPrice <= 0)
-                    ManBpoRuns.Content = "Not Profitable";
+                if (bestPrice <= 0) ManBpoRuns.Content = "Not Profitable";
                 else
                 {
                     int runs = (int)Math.Ceiling(item.BlueprintBasePrice / bestPrice);
@@ -302,7 +296,7 @@ namespace EvE_Build_WPF
                 }
                 else if (items.ContainsKey(material.Type))
                 {
-                    name = items[material.Type].ProdName;
+                    name = items[material.Type].ProductName;
                     cost = cheapStation == 0 ? CalculateItemPrice(item) : CalculateItemPrice(cheapStation, item);
                     advancedMaterial = true;
                 }
@@ -334,16 +328,16 @@ namespace EvE_Build_WPF
             int cheapestId = 0;
             decimal bestMargin = decimal.MinValue;
             float te = 1f - (float)ManTe.Value / 100f;
-            float buildTime = item.ProdTime / 60f / 60f * te;
+            float buildTime = item.ProductionTime / 60f / 60f * te;
 
             foreach (Station station in Settings.Stations)
             {
                 decimal buildCost = CalculateItemPrice(station.StationId, item);
                 decimal stationBuy = item.BuyPrice.Count > 0 && item.BuyPrice.ContainsKey(station.StationId) ? item.BuyPrice[station.StationId] : 0m;
-                decimal stationSell = item.SellPrice.Count > 0 && item.SellPrice.ContainsKey(station.StationId) ? item.SellPrice[station.StationId] : 0m;
+                decimal stationSell = item.SellCost.Count > 0 && item.SellCost.ContainsKey(station.StationId) ? item.SellCost[station.StationId] : 0m;
 
-                decimal sellProfit = stationSell * item.ProdQty - buildCost;
-                decimal buyProfit = stationBuy * item.ProdQty - buildCost;
+                decimal sellProfit = stationSell * item.ProductionQuantity - buildCost;
+                decimal buyProfit = stationBuy * item.ProductionQuantity - buildCost;
                 decimal bestPrice = sellProfit > buyProfit ? sellProfit : buyProfit;
                 decimal hour = bestPrice / (decimal)buildTime;
 
@@ -443,7 +437,7 @@ namespace EvE_Build_WPF
             if (items.Count <= 0) return;
 
             List<KeyValuePair<int, Item>> results = new List<KeyValuePair<int, Item>>(
-                items.Where(item => item.Value.ProdName.ToLower().Contains(searchTerm)));
+                items.Where(item => item.Value.ProductName.ToLower().Contains(searchTerm)));
             results.Sort(new Item());
 
             SearchAllList.Items.Clear();
@@ -452,8 +446,8 @@ namespace EvE_Build_WPF
             {
                 ListBoxItem listItem = new ListBoxItem
                 {
-                    Content = item.Value.ProdName,
-                    Tag = item.Value.ProdId
+                    Content = item.Value.ProductName,
+                    Tag = item.Value.ProductId
                 };
 
                 SearchAllList.Items.Add(listItem);

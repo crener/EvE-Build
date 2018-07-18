@@ -1,14 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
 using System.IO;
 using System.IO.Compression;
-using System.Linq;
 using System.Net;
-using System.Net.Sockets;
 using System.Net.WebSockets;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using ICSharpCode.SharpZipLib.BZip2;
 using ICSharpCode.SharpZipLib.Core;
@@ -43,7 +37,7 @@ namespace EvE_Build_WPF.Code
             }
 
             //check for new eve data
-            if (info.ApiUpdateTime > File.GetCreationTime(FileParser.blueprintsFile))
+            if (info.ApiUpdateTime > File.GetCreationTime(FileParser.BlueprintsFile))
             {
                 MessageBoxResult answer = MessageBox.Show(
                     "There are new Eve Online files available. Would you like to download them?",
@@ -81,13 +75,13 @@ namespace EvE_Build_WPF.Code
                     {
                         {
                             string path = "temp" + s + "sde" + s + "fsd" + s + "blueprints.yaml";
-                            if (File.Exists(FileParser.blueprintsFile)) File.Delete(FileParser.blueprintsFile);
-                            File.Move(path, FileParser.blueprintsFile);
+                            if (File.Exists(FileParser.BlueprintsFile)) File.Delete(FileParser.BlueprintsFile);
+                            File.Move(path, FileParser.BlueprintsFile);
                         }
 
                         {
                             string path = "temp" + s + "sde" + s + "fsd" + s + "typeIDs.yaml";
-                            if (File.Exists(FileParser.typeIdFile)) File.Delete(FileParser.typeIdFile);
+                            if (File.Exists(FileParser.TypeIdFile)) File.Delete(FileParser.TypeIdFile);
                             File.Move(path, "static" + s + "typeIDs.yaml");
                         }
                     }
@@ -109,7 +103,7 @@ namespace EvE_Build_WPF.Code
                     using (Stream streamIn = new FileStream("inv.bz2", FileMode.Open, FileAccess.Read))
                     using (var gzipStream = new BZip2InputStream(streamIn))
                     {
-                        using (var fileStreamOut = File.Create(FileParser.marketGroupFile))
+                        using (var fileStreamOut = File.Create(FileParser.MarketGroupFile))
                         {
                             StreamUtils.Copy(gzipStream, fileStreamOut, buffer);
                         }

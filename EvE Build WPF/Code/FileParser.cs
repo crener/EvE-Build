@@ -8,32 +8,24 @@ using YamlDotNet.RepresentationModel;
 
 namespace EvE_Build_WPF.Code
 {
-    static class FileParser
+    class FileParser
     {
-        private static YamlMappingNode types;
-        public static readonly string blueprintsFile = Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "static" +
-            Path.DirectorySeparatorChar + "blueprints.yaml";
-        public static readonly string typeIdFile = Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "static" + Path.DirectorySeparatorChar + "typeIDs.yaml";
-        public static readonly string marketGroupFile = Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "static" + Path.DirectorySeparatorChar + "invMarketGroups.csv";
+        private static readonly char S = Path.DirectorySeparatorChar;
+        private static readonly string CurrentDirectory = Directory.GetCurrentDirectory();
 
-        public static bool CheckSaveDirectoryExists()
-        {
-            string directory = Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "static";
-            if (!Directory.Exists(directory))
-            {
-                Directory.CreateDirectory(directory);
-                return false;
-            }
-            return true;
-        }
+        public static readonly string BlueprintsFile = CurrentDirectory + S + "static" + S + "blueprints.yaml";
+        public static readonly string TypeIdFile = CurrentDirectory + S + "static" + S + "typeIDs.yaml";
+        public static readonly string MarketGroupFile = CurrentDirectory + S + "static" + S + "invMarketGroups.csv";
 
-        public static Dictionary<int, Item> ParseBlueprintData()
+        private YamlMappingNode types;
+
+        public Dictionary<int, Item> ParseBlueprintData()
         {
-            if (!File.Exists(blueprintsFile)) throw new FileNotFoundException();
+            if (!File.Exists(BlueprintsFile)) throw new FileNotFoundException();
 
             Dictionary<int, Item> items = new Dictionary<int, Item>();
 
-            using (StreamReader data = new StreamReader(blueprintsFile))
+            using (StreamReader data = new StreamReader(BlueprintsFile))
             {
                 YamlStream file = new YamlStream();
                 file.Load(data);
@@ -52,110 +44,13 @@ namespace EvE_Build_WPF.Code
                         YamlMappingNode currentEntry = (YamlMappingNode)node.Value;
                         YamlMappingNode activityNode = null;
 
-                        foreach (var item in currentEntry)
-                        {
-                            int temp;
-                            switch (item.Key.ToString())
-                            {
-                                case "activities":
-                                    activityNode = (YamlMappingNode)item.Value;
-                                    break;
-                                case "maxProductionLimit":
-                                    if (int.TryParse(item.Value.ToString(), out temp))
-                                        candidate.ProdLimit = temp;
-                                    break;
-                                case "blueprintTypeID":
-                                    if (int.TryParse(item.Value.ToString(), out temp) && temp != candidate.BlueprintId)
-                                        candidate.BlueprintId = temp;
-                                    break;
-                            }
-                        }
+                        if(currentEntry["activities"] != null) activityNode = (YamlMappingNode)currentEntry["activities"];
+                        else continue;
 
-                        if (activityNode == null) continue;
+                        if (currentEntry["maxProductionLimit"] != null) candidate.ProductionLimit = int.Parse(currentEntry["maxProductionLimit"].ToString());
+                        if(currentEntry["blueprintTypeID"] != null) candidate.BlueprintId = int.Parse(currentEntry["blueprintTypeID"].ToString());
 
-                        foreach (KeyValuePair<YamlNode, YamlNode> activity in activityNode)
-                        {
-                            switch (activity.Key.ToString())
-                            {
-                                #region Manufacturing data extraction
-                                case "manufacturing":
-                                    if (activity.Value.AllNodes.Contains("materials"))
-                                    {
-                                        foreach (YamlNode mat in (YamlSequenceNode)activity.Value["materials"])
-                                        {
-                                            int type = int.Parse(mat["typeID"].ToString());
-                                            long qty = long.Parse(mat["quantity"].ToString());
-
-                                            candidate.AddProductMaterial(type, qty);
-                                        }
-                                    }
-
-                                    if (activity.Value.AllNodes.Contains("products"))
-                                    {
-                                        foreach (YamlNode prod in (YamlSequenceNode)activity.Value["products"])
-                                        {
-                                            candidate.ProdId = int.Parse(prod["typeID"].ToString());
-                                            candidate.ProdQty = int.Parse(prod["quantity"].ToString());
-                                        }
-                                    }
-
-                                    if (activity.Value.AllNodes.Contains("skills"))
-                                    {
-                                        foreach (YamlNode skill in (YamlSequenceNode)activity.Value["skills"])
-                                        {
-                                            int type = int.Parse(skill["typeID"].ToString());
-                                            int level = int.Parse(skill["level"].ToString());
-
-                                            candidate.AddProductSkill(type, level);
-                                        }
-                                    }
-
-                                    if (activity.Value.AllNodes.Contains("time"))
-                                    {
-                                        candidate.ProdTime = int.Parse(activity.Value["time"].ToString());
-                                    }
-                                    break;
-                                #endregion
-
-                                #region Copy data extraction
-                                case "copying":
-                                    if (activity.Value.AllNodes.Contains("materials"))
-                                    {
-                                        foreach (YamlNode mat in (YamlSequenceNode)activity.Value["materials"])
-                                        {
-                                            int type = int.Parse(mat["typeID"].ToString());
-                                            long qty = long.Parse(mat["quantity"].ToString());
-
-                                            candidate.AddCopyMaterial(type, qty);
-                                        }
-                                    }
-
-                                    if (activity.Value.AllNodes.Contains("skills"))
-                                    {
-                                        foreach (YamlNode skill in (YamlSequenceNode)activity.Value["skills"])
-                                        {
-                                            int type = int.Parse(skill["typeID"].ToString());
-                                            int level = int.Parse(skill["level"].ToString());
-
-                                            candidate.AddCopySkill(type, level);
-                                        }
-                                    }
-
-                                    if (activity.Value.AllNodes.Contains("time"))
-                                    {
-                                        candidate.CopyTime = int.Parse(activity.Value["time"].ToString());
-                                    }
-                                    break;
-                                #endregion
-#if DEBUG
-                                case "research_material":
-                                case "research_time":
-                                case "invention":
-                                    //Ignore all for now!!
-                                    break;
-#endif
-                            }
-                        }
+                        ExtractItemData(activityNode, ref candidate);
 
                         if (candidate.CheckValididty() && !items.ContainsKey(candidate.BlueprintId))
                         {
@@ -173,11 +68,170 @@ namespace EvE_Build_WPF.Code
             return items;
         }
 
-        public static void ParseItemDetails(ref Dictionary<int, Item> itemCollection)
+        private void ExtractItemData(YamlMappingNode activityNode, ref Item candidate)
         {
-            if (!File.Exists(typeIdFile)) throw new FileNotFoundException();
+            foreach (KeyValuePair<YamlNode, YamlNode> activity in activityNode)
+            {
+                switch (activity.Key.ToString())
+                {
+                    #region Manufacturing data extraction
 
-            using (StreamReader data = new StreamReader(typeIdFile))
+                    case "manufacturing":
+                        if (activity.Value.AllNodes.Contains("materials"))
+                        {
+                            foreach (YamlNode mat in (YamlSequenceNode)activity.Value["materials"])
+                            {
+                                int type = int.Parse(mat["typeID"].ToString());
+                                long qty = long.Parse(mat["quantity"].ToString());
+
+                                candidate.AddProductMaterial(type, qty);
+                            }
+                        }
+
+                        if (activity.Value.AllNodes.Contains("products"))
+                        {
+                            foreach (YamlNode prod in (YamlSequenceNode)activity.Value["products"])
+                            {
+                                candidate.ProductId = int.Parse(prod["typeID"].ToString());
+                                candidate.ProductionQuantity = int.Parse(prod["quantity"].ToString());
+                            }
+                        }
+
+                        if (activity.Value.AllNodes.Contains("skills"))
+                        {
+                            foreach (YamlNode skill in (YamlSequenceNode)activity.Value["skills"])
+                            {
+                                int type = int.Parse(skill["typeID"].ToString());
+                                int level = int.Parse(skill["level"].ToString());
+
+                                candidate.AddProductSkill(type, level);
+                            }
+                        }
+
+                        if (activity.Value.AllNodes.Contains("time"))
+                        {
+                            candidate.ProductionTime = int.Parse(activity.Value["time"].ToString());
+                        }
+                        break;
+
+                    #endregion
+
+                    #region Copy data extraction
+
+                    case "copying":
+                        if (activity.Value.AllNodes.Contains("materials"))
+                        {
+                            foreach (YamlNode mat in (YamlSequenceNode)activity.Value["materials"])
+                            {
+                                int type = int.Parse(mat["typeID"].ToString());
+                                long qty = long.Parse(mat["quantity"].ToString());
+
+                                candidate.AddCopyMaterial(type, qty);
+                            }
+                        }
+
+                        if (activity.Value.AllNodes.Contains("skills"))
+                        {
+                            foreach (YamlNode skill in (YamlSequenceNode)activity.Value["skills"])
+                            {
+                                int type = int.Parse(skill["typeID"].ToString());
+                                int level = int.Parse(skill["level"].ToString());
+
+                                candidate.AddCopySkill(type, level);
+                            }
+                        }
+
+                        if (activity.Value.AllNodes.Contains("time"))
+                        {
+                            candidate.CopyTime = int.Parse(activity.Value["time"].ToString());
+                        }
+                        break;
+
+                    #endregion
+                }
+            }
+        }
+
+        /*private void ExtractItemData(YamlMappingNode activityNode, ref Item candidate)
+        {
+            YamlNode tempNode;
+
+            if((tempNode = activityNode["manufacturing"]) != null)
+            {
+                if (tempNode.AllNodes.Contains("materials"))
+                {
+                    foreach (YamlNode mat in (YamlSequenceNode)tempNode["materials"])
+                    {
+                        int type = int.Parse(mat["typeID"].ToString());
+                        long qty = long.Parse(mat["quantity"].ToString());
+
+                        candidate.AddProductMaterial(type, qty);
+                    }
+                }
+
+                if (tempNode.AllNodes.Contains("products"))
+                {
+                    foreach (YamlNode prod in (YamlSequenceNode)tempNode["products"])
+                    {
+                        candidate.ProductId = int.Parse(prod["typeID"].ToString());
+                        candidate.ProductionQuantity = int.Parse(prod["quantity"].ToString());
+                    }
+                }
+
+                if (tempNode.AllNodes.Contains("skills"))
+                {
+                    foreach (YamlNode skill in (YamlSequenceNode)tempNode["skills"])
+                    {
+                        int type = int.Parse(skill["typeID"].ToString());
+                        int level = int.Parse(skill["level"].ToString());
+
+                        candidate.AddProductSkill(type, level);
+                    }
+                }
+
+                if (tempNode.AllNodes.Contains("time"))
+                {
+                    candidate.ProductionTime = int.Parse(tempNode["time"].ToString());
+                }
+            }
+
+            if((tempNode = activityNode["copying"]) != null)
+            {
+                if (tempNode.AllNodes.Contains("materials"))
+                {
+                    foreach (YamlNode mat in (YamlSequenceNode)tempNode["materials"])
+                    {
+                        int type = int.Parse(mat["typeID"].ToString());
+                        long qty = long.Parse(mat["quantity"].ToString());
+
+                        candidate.AddCopyMaterial(type, qty);
+                    }
+                }
+
+                if (tempNode.AllNodes.Contains("skills"))
+                {
+                    foreach (YamlNode skill in (YamlSequenceNode)tempNode["skills"])
+                    {
+                        int type = int.Parse(skill["typeID"].ToString());
+                        int level = int.Parse(skill["level"].ToString());
+
+                        candidate.AddCopySkill(type, level);
+                    }
+                }
+
+                if (tempNode.AllNodes.Contains("time"))
+                {
+                    candidate.ProductionTime = int.Parse(tempNode["time"].ToString());
+                }
+            }
+        }
+        */
+
+        public  void ParseItemDetails(ref Dictionary<int, Item> itemCollection)
+        {
+            if (!File.Exists(TypeIdFile)) throw new FileNotFoundException();
+
+            using (StreamReader data = new StreamReader(TypeIdFile))
             {
                 YamlStream file = new YamlStream();
                 file.Load(data);
@@ -194,7 +248,7 @@ namespace EvE_Build_WPF.Code
                     {
                         foreach (KeyValuePair<int, Item> pair in itemCollection)
                         {
-                            if (pair.Value.ProdId == blue)
+                            if (pair.Value.ProductId == blue)
                             {
                                 current = pair.Value;
                                 break;
@@ -246,7 +300,7 @@ namespace EvE_Build_WPF.Code
                 //product data
                 foreach (Item item in itemCollection.Values)
                 {
-                    int id = item.ProdId;
+                    int id = item.ProductId;
                     YamlNode node;
 
                     if (types.Children.TryGetValue(new YamlScalarNode(id.ToString()), out node))
@@ -259,14 +313,14 @@ namespace EvE_Build_WPF.Code
                                 case "name":
                                     if (allNodes.Value.AllNodes.Contains("en") && allNodes.Value["en"].ToString() != "")
                                     {
-                                        item.ProdName = allNodes.Value["en"].ToString();
-                                        if (CheckNameForSubFaction(item.ProdName)) item.isSubFaction = true;
+                                        item.ProductName = allNodes.Value["en"].ToString();
+                                        if (CheckNameForSubFaction(item.ProductName)) item.isSubFaction = true;
                                     }
                                     break;
                                 case "basePrice":
                                     decimal longTemp;
                                     if (decimal.TryParse(allNodes.Value.ToString(), out longTemp))
-                                        item.ProdBasePrice = longTemp;
+                                        item.ProductBasePrice = longTemp;
                                     break;
                                 case "published":
                                     if (!bool.Parse(allNodes.Value.ToString()))
@@ -275,7 +329,7 @@ namespace EvE_Build_WPF.Code
                                 case "volume":
                                     decimal volume;
                                     if (decimal.TryParse(allNodes.Value.ToString(), out volume))
-                                        item.ProdVolume = volume;
+                                        item.ProductVolume = volume;
                                     break;
                                 case "factionID":
                                     int faction;
@@ -306,12 +360,12 @@ namespace EvE_Build_WPF.Code
 
         public static List<MarketItem> ParseMarketGroupData()
         {
-            if (!File.Exists(marketGroupFile)) throw new FileNotFoundException();
+            if (!File.Exists(MarketGroupFile)) throw new FileNotFoundException();
 
             List<MarketItem> collection = new List<MarketItem>();
             try
             {
-                using (StreamReader data = new StreamReader(marketGroupFile))
+                using (StreamReader data = new StreamReader(MarketGroupFile))
                 {
                     string line = data.ReadLine();
 
@@ -343,7 +397,7 @@ namespace EvE_Build_WPF.Code
             return collection;
         }
 
-        public static ConcurrentDictionary<int, MaterialItem> GatherMaterials(ConcurrentDictionary<int, Item> items)
+        public ConcurrentDictionary<int, MaterialItem> GatherMaterials(ConcurrentDictionary<int, Item> items)
         {
             YamlNode nameKey = new YamlScalarNode("name");
             YamlNode langKey = new YamlScalarNode("en");
@@ -391,12 +445,6 @@ namespace EvE_Build_WPF.Code
                 name.Contains("Civilian") ||
                 name.Contains("CONCORD") ||
                 name.Contains("Caldari Navy");
-        }
-
-        public static void ClearData()
-        {
-            types = null;
-            GC.Collect();
         }
     }
 }

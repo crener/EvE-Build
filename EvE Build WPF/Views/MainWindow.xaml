@@ -45,6 +45,7 @@
                         <RowDefinition Height="62*"/>
                     </Grid.RowDefinitions>
                     <Label x:Name="ManName" FontWeight="Bold" FontSize="24" Grid.Row="0" Grid.ColumnSpan="2">Loading items from file</Label>
+                    
                     <DockPanel Grid.Row="1" Grid.Column="0">
                         <Label x:Name="ManTypeId" HorizontalAlignment="Left" VerticalAlignment="Center" Height="26" Width="46">TypeID</Label>
                         <Label x:Name="ManBlueType" Margin="30,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center" Height="26" Width="58">BlueTypeID</Label>
@@ -66,7 +67,7 @@
 
                     <!--Right Side Controls-->
                     <DockPanel Grid.Row="1" Grid.Column="1" Grid.RowSpan="4">
-                        <CheckBox x:Name="ManBaseMaterial" HorizontalAlignment="Left" DockPanel.Dock="Top">Use Base Materials for calculation</CheckBox>
+                        <CheckBox x:Name="ManBaseMaterial" DockPanel.Dock="Top" Margin="0,0,80,0">Use Base Materials for calculation</CheckBox>
                         <CheckBox x:Name="ManCalcBuyProfit" HorizontalAlignment="Left" DockPanel.Dock="Top">per hr profit calc. based on buy profit</CheckBox>
 
                         <Grid>
@@ -79,12 +80,12 @@
                                 <ColumnDefinition/>
                             </Grid.ColumnDefinitions>
                             <Label VerticalAlignment="Top" Height="26">BPO Cost:</Label>
-                            <Label x:Name="ManBpoCost" HorizontalAlignment="Left" VerticalAlignment="Top" Grid.Column="1" Height="26">0</Label>
                             <Label VerticalAlignment="Top" Margin="0,16,0,0" Height="26" Grid.RowSpan="2">Runs to pay BPO:</Label>
-                            <Label x:Name="ManBpoRuns" HorizontalAlignment="Left" Margin="0,16,0,56" Grid.Column="1" Grid.RowSpan="2">0</Label>
                             <Label VerticalAlignment="Top" Grid.Row="1" Height="26">Item Volume:</Label>
-                            <Label x:Name="ManVolumeItem" HorizontalAlignment="Left" VerticalAlignment="Top" Grid.Column="1" Grid.Row="1" Height="26">0 m3</Label>
                             <Label VerticalAlignment="Top" Margin="0,16,0,0" Grid.Row="1" Height="26">Material Volume:</Label>
+                            <Label x:Name="ManBpoCost" HorizontalAlignment="Left" VerticalAlignment="Top" Grid.Column="1" Height="26">0</Label>
+                            <Label x:Name="ManBpoRuns" HorizontalAlignment="Left" Margin="0,16,0,56" Grid.Column="1" Grid.RowSpan="2">0</Label>
+                            <Label x:Name="ManVolumeItem" HorizontalAlignment="Left" VerticalAlignment="Top" Grid.Column="1" Grid.Row="1" Height="26">0 m3</Label>
                             <Label x:Name="ManVolumeMaterial" HorizontalAlignment="Left" Margin="0,16,0,0" VerticalAlignment="Top" Grid.Row="1" Grid.Column="1" Height="26">0 m3</Label>
                         </Grid>
                     </DockPanel>
