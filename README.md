@@ -10,5 +10,12 @@ Download the source and run from Visual Studio or grab a release version and run
 # How to use
 Once everything has been loaded you will get a list of items of the left which you can search through, or use the market groups in the tab on the right. Prices will automatically be downloaded and updated every few minutes as long as EvE-Build is open.
 
-# New items are missing
+# FAQ
+## New items are missing
 Ahh well, looks like CCP updated the item DB again. This is a simple fix, just make an issue and I'll update the file that EvE-Build looks at on startup and it should grab the new item database when it startup next time.
+
+## Why does it take a minute to startup?
+The item databse that CCP makes avaliable is quite big so it takes a while to look through it and grab all the inforamtion that is needed, This happens every time EvE-Build startup and it could be changed to cache the extracted data into a smaller file so that it can be loaded. If you feel that you want it to load faster [make an issue](https://github.com/crener/EvE-Build/issues/new) and that will probably give me the motivation to add it...
+
+## EvE-Build is missing something
+Hmm, well I don't really keep up with EvE anymore... But I'm happy to support the program so put up an issue and I'll look into adding it.
